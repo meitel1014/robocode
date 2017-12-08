@@ -37,18 +37,14 @@ public class G05 extends TeamRobot {
 	//スキャンしたときにこちらを向いているときだけ防御ポイントを1上げる
 	public void onScannedRobot(ScannedRobotEvent e) {
 		RobotData robo = data.get(e.getName());
+
 		if (robo.isTeammate() == false) {
-			int count = 0;//2回目以降のスキャンでもカウントすることが無いようにしたいが、毎回定義されてそう
 			if (e.getBearing() > 160 || e.getBearing() < -160) {
 				robo.setDirectionDefendpoint(1);
 				robo.setDirectionAttackPoint(2);
-				count = 1;
 			} else {
-				if (count == 1) {
-					robo.setDirectionAttackPoint(1);
-					robo.setDirectionDefendpoint(0);
-					count = 0;
-				}
+				robo.setDirectionAttackPoint(1);
+				robo.setDirectionDefendpoint(0);
 			}
 			if(e.getDistance() <= 300) {
 				robo.setDistanceAttackPoint(3);
@@ -92,7 +88,6 @@ public class G05 extends TeamRobot {
 		forcex = 0;
 		forcey = 0;
 
-		
 		/*
 		 * 敵ロボットとの反重力
 		 */
@@ -103,7 +98,7 @@ public class G05 extends TeamRobot {
 			forcex += power * ((myx - posi.getX()) / distance);
 			forcey += power * ((myy - posi.getY()) / distance);
 		}
-		
+
 		/*
 		 * 壁との反重力
 		 */
@@ -111,12 +106,16 @@ public class G05 extends TeamRobot {
 		forcex += wallpoint / (1000 - myx);
 		forcey += wallpoint / myy;
 		forcey += wallpoint / (800 - myy);
-		
+
 		/*
 		 * ベクトルから方向への変換
 		 */
 		if((forcex != 0) || (forcey != 0)) {
-			direction = Math.acos(forcex/Math.sqrt(forcex*forcex+forcey*forcey));
+			if(forcey >=0) {
+				direction = Math.acos(forcex/Math.sqrt(forcex*forcex+forcey*forcey));
+			}else {
+				direction = Math.PI+Math.acos(forcex/Math.sqrt(forcex*forcex+forcey*forcey));
+			}
 		}else {
 			direction = 0;
 		}
