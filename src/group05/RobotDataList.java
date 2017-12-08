@@ -53,8 +53,7 @@ public class RobotDataList{
 		return ret;
 	}
 
-
+	public ArrayList<RobotData> getAll(){
+		return datalist;
+	}
 }
-
-
-
