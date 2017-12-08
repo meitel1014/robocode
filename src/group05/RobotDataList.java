@@ -15,6 +15,10 @@ public class RobotDataList{
 	 * @param robotnames
 	 */
 	public RobotDataList(String[] robotnames){
+		datalist=new ArrayList<RobotData>();
+		if(robotnames==null) {
+			return;
+		}
 		for(String name: robotnames){
 			datalist.add(new RobotData(name, true));
 		}

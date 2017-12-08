@@ -15,14 +15,14 @@ public class G05 extends TeamRobot {
 	RobotDataList data;
 
 	public void run() {
-		// 機体のデザイン
-		setBodyColor(Color.pink);
+		data = new RobotDataList(getTeammates());
+		setBodyColor(Color.black);
 		setGunColor(Color.blue);
 		setRadarColor(Color.yellow);
 		setBulletColor(Color.red);
 		setScanColor(Color.white);
 		// 各ロボットのデータリストを作成 チームメイトのデータをまず登録
-		data = new RobotDataList(getTeammates());
+
 
 		while (true) {
 			setAhead(100);

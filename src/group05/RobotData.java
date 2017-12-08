@@ -11,7 +11,7 @@ import java.awt.geom.Point2D;
 public class RobotData{
 	private String name;
 	private int attackPointByDistance, attackPointByDirection;
-	private int defendPointByBullet,defendPointByDirection;
+	private int defendPointByBullet,defendPointByDirection,defendPointByHitByRobot;
 	private Point2D.Double position;
 	private double velocity;
 	private boolean isTeammate;
@@ -60,7 +60,7 @@ public class RobotData{
 	 * @return
 	 */
 	public int getDefendPoint(){
-		return defendPointByBullet+defendPointByDirection;
+		return defendPointByBullet+defendPointByDirection+defendPointByHitByRobot;
 	}
 
 	/**
@@ -89,6 +89,10 @@ public class RobotData{
 		if(defendPointByBullet < 0){
 			defendPointByBullet = 0;
 		}
+	}
+
+	public void addDefendPointByHitByRobot(int point) {
+		defendPointByHitByRobot += point;
 	}
 
 	/**
