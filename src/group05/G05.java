@@ -108,6 +108,12 @@ public class G05 extends TeamRobot{
 		}else {
 			direction = 0;
 		}
+		direction = changeDistanceForRobo(direction);
+		return direction;
+	}
+	
+	private double changeDistanceForRobo(double radian) {
+		double direction = -(radian-(Math.PI/4));
 		return direction;
 	}
 }
