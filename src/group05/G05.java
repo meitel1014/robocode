@@ -45,6 +45,7 @@ public class G05 extends TeamRobot{
 
 	// 敵の弾に当たった時
 	public void onHitByBullet(HitByBulletEvent e){
+		data.get(e.getName()).addAttackPoint(1);
 		// turnRight(normalRelativeAngleDegrees(90 - (getHeading() -
 		// e.getHeading())));
 		//
@@ -55,10 +56,12 @@ public class G05 extends TeamRobot{
 
 	// 敵にぶつかった時
 	public void onHitRobot(HitRobotEvent e){
+
 		// double turnGunAmt = normalRelativeAngleDegrees(e.getBearing() +
 		// getHeading() - getGunHeading());
 		//
 		// turnGunRight(turnGunAmt);
 		// fire(3);
 	}
+
 }
