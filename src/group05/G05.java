@@ -58,11 +58,16 @@ public class G05 extends TeamRobot{
 		RobotData robo = new RobotData(e.getName(),true);//とりあえずtrue代入したが、良いのか？
 		if(robo.isTeammate() == false)
 			robo.addDefendpoint(1);//攻撃をしてきた相手の防御ポイントを1上げる
+		data.get(e.getName()).addAttackPoint(1);
 	}
 
 
 	public void onHitRobot(HitRobotEvent e){
-
+		// double turnGunAmt = normalRelativeAngleDegrees(e.getBearing() +
+		// getHeading() - getGunHeading());
+		//
+		// turnGunRight(turnGunAmt);
+		// fire(3);
 	}
 
 	//動くべき方向をラジアンで返す
