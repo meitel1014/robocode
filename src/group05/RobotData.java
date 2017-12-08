@@ -10,7 +10,8 @@ import java.awt.geom.Point2D;
  */
 public class RobotData{
 	private String name;
-	private int attackPoint, defendPoint;
+	private int attackPointByDistance, attackPointByDirection;
+	private int defendPointByBullet,defendPointByDirection,defendPointByHitByRobot;
 	private Point2D.Double position;
 	private double velocity;
 	private boolean isTeammate;
@@ -23,8 +24,10 @@ public class RobotData{
 	public RobotData(String name, boolean isTeammate){
 		this.name = name;
 		this.isTeammate = isTeammate;
-		attackPoint = 0;
-		defendPoint = 2;
+		attackPointByDistance = 0;
+		attackPointByDirection = 0;
+		defendPointByBullet = 2;
+		defendPointByDirection = 0;
 		position = new Point2D.Double();
 	}
 
@@ -33,27 +36,23 @@ public class RobotData{
 	 * @return このロボットの攻撃ポイント
 	 */
 	public int getAttackPoint(){
-		return attackPoint;
+		return attackPointByDirection+attackPointByDistance;
 	}
 
 	/**
-	 * このロボットの攻撃ポイントにpointを加える．
+	 * このロボットの距離攻撃ポイントをpointにする．
 	 * @param point
 	 */
-	public void addAttackPoint(int point){
-		attackPoint += point;
+	public void setDistanceAttackPoint(int point){
+		attackPointByDistance = point;
 	}
 
 	/**
-	 * このロボットの攻撃ポイントからpointを引く．
-	 * 攻撃ポイントが負になる場合は0にする．
+	 * このロボットの方向攻撃ポイントをpointにする．
 	 * @param point
 	 */
-	public void subAttackPoint(int point){
-		attackPoint -= point;
-		if(attackPoint < 0){
-			attackPoint = 0;
-		}
+	public void setDirectionAttackPoint(int point){
+		attackPointByDirection = point;
 	}
 
 	/**
@@ -61,27 +60,39 @@ public class RobotData{
 	 * @return
 	 */
 	public int getDefendPoint(){
-		return defendPoint;
+		return defendPointByBullet+defendPointByDirection+defendPointByHitByRobot;
 	}
 
 	/**
-	 * このロボットの防御ポイントにpointを加える．
+	 * このロボットの弾防御ポイントにpointを加える．
 	 * @param point
 	 */
-	public void addDefendpoint(int point){
-		defendPoint += point;
+	public void addBulletDefendpoint(int point){
+		defendPointByBullet += point;
 	}
 
 	/**
-	 * このロボットの防御ポイントからpointを引く．
+	 * このロボットの方向防御ポイントをpointにする．
+	 * @param point
+	 */
+	public void setDirectionDefendpoint(int point){
+		defendPointByDirection = point;
+	}
+
+	/**
+	 * このロボットの弾防御ポイントからpointを引く．
 	 * 防御ポイントが負になる場合は0にする．
 	 * @param point
 	 */
 	public void subDefendpoint(int point){
-		defendPoint -= point;
-		if(defendPoint < 0){
-			defendPoint = 0;
+		defendPointByBullet -= point;
+		if(defendPointByBullet < 0){
+			defendPointByBullet = 0;
 		}
+	}
+
+	public void addDefendPointByHitByRobot(int point) {
+		defendPointByHitByRobot += point;
 	}
 
 	/**
