@@ -40,13 +40,23 @@ public class G05 extends TeamRobot {
 			int count = 0;//2回目以降のスキャンでもカウントすることが無いようにしたいが、毎回定義されてそう
 			if (e.getBearing() > 160 || e.getBearing() < -160) {
 				robo.setDirectionDefendpoint(1);
+				robo.setDirectionAttackPoint(2);
 				count = 1;
 			} else {
 				if (count == 1) {
+					robo.setDirectionAttackPoint(1);
 					robo.setDirectionDefendpoint(0);
 					count = 0;
 				}
-
+			}
+			if(e.getDistance() <= 300) {
+				robo.setDistanceAttackPoint(3);
+			}
+			else if(e.getDistance() > 300 && e.getDistance() <= 600) {
+				robo.setDistanceAttackPoint(2);
+			}
+			else {
+				robo.setDistanceAttackPoint(1);
 			}
 		}
 	}
