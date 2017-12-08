@@ -2,22 +2,23 @@ package group05;
 
 import java.awt.geom.Point2D;
 
-
 /**
  * ロボットのデータを管理するクラス．
+ *
  * @author MEITEL
  *
  */
 public class RobotData{
 	private String name;
 	private int attackPointByDistance, attackPointByDirection;
-	private int defendPointByBullet,defendPointByDirection,defendPointByHitByRobot;
+	private int defendPointByBullet, defendPointByDirection, defendPointByHitByRobot;
 	private Point2D.Double position;
 	private double velocity;
 	private boolean isTeammate;
 
 	/**
 	 * RobotDataListからのみ呼び出す，直接コンストラクタを使用してはならない．
+	 *
 	 * @param name
 	 * @param isTeammate
 	 */
@@ -33,14 +34,16 @@ public class RobotData{
 
 	/**
 	 * このロボットの攻撃ポイントを返す．
+	 *
 	 * @return このロボットの攻撃ポイント
 	 */
 	public int getAttackPoint(){
-		return attackPointByDirection+attackPointByDistance;
+		return attackPointByDirection + attackPointByDistance;
 	}
 
 	/**
 	 * このロボットの距離攻撃ポイントをpointにする．
+	 *
 	 * @param point
 	 */
 	public void setDistanceAttackPoint(int point){
@@ -49,6 +52,7 @@ public class RobotData{
 
 	/**
 	 * このロボットの方向攻撃ポイントをpointにする．
+	 *
 	 * @param point
 	 */
 	public void setDirectionAttackPoint(int point){
@@ -57,14 +61,16 @@ public class RobotData{
 
 	/**
 	 * このロボットの防御ポイントを返す．
+	 *
 	 * @return
 	 */
 	public int getDefendPoint(){
-		return defendPointByBullet+defendPointByDirection+defendPointByHitByRobot;
+		return defendPointByBullet + defendPointByDirection + defendPointByHitByRobot;
 	}
 
 	/**
 	 * このロボットの弾防御ポイントにpointを加える．
+	 *
 	 * @param point
 	 */
 	public void addBulletDefendpoint(int point){
@@ -73,6 +79,7 @@ public class RobotData{
 
 	/**
 	 * このロボットの方向防御ポイントをpointにする．
+	 *
 	 * @param point
 	 */
 	public void setDirectionDefendpoint(int point){
@@ -80,8 +87,8 @@ public class RobotData{
 	}
 
 	/**
-	 * このロボットの弾防御ポイントからpointを引く．
-	 * 防御ポイントが負になる場合は0にする．
+	 * このロボットの弾防御ポイントからpointを引く． 防御ポイントが負になる場合は0にする．
+	 *
 	 * @param point
 	 */
 	public void subDefendpoint(int point){
@@ -91,12 +98,13 @@ public class RobotData{
 		}
 	}
 
-	public void addDefendPointByHitByRobot(int point) {
+	public void addDefendPointByHitByRobot(int point){
 		defendPointByHitByRobot += point;
 	}
 
 	/**
 	 * このロボットの座標を記録する．
+	 *
 	 * @param x
 	 * @param y
 	 */
@@ -106,6 +114,7 @@ public class RobotData{
 
 	/**
 	 * このロボットの座標を返す．
+	 *
 	 * @return このロボットの座標
 	 */
 	public Point2D.Double getPosition(){
@@ -114,14 +123,16 @@ public class RobotData{
 
 	/**
 	 * このロボットの速度を記録する，
+	 *
 	 * @param v
 	 */
 	public void setVelocity(double v){
-		velocity=v;
+		velocity = v;
 	}
 
 	/**
 	 * このロボットの速度を返す．
+	 *
 	 * @return このロボットの速度
 	 */
 	public double getVelocity(){
@@ -130,6 +141,7 @@ public class RobotData{
 
 	/**
 	 * このロボットの名前を返す．
+	 *
 	 * @return このロボットの名前
 	 */
 	public String getName(){
@@ -138,6 +150,7 @@ public class RobotData{
 
 	/**
 	 * このロボットが味方かどうかを返す．
+	 *
 	 * @return このロボットが味方ならtrue，敵ならfalse
 	 */
 	public boolean isTeammate(){

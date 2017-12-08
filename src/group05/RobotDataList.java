@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 /**
  * 各ロボットに対する{@link RobotData}を格納するクラス．
+ *
  * @author MEITEL
  *
  */
@@ -12,11 +13,12 @@ public class RobotDataList{
 
 	/**
 	 * 味方ロボットの名前をString配列で受け取りそれらに対する{@link RobotData}を作成する．
+	 *
 	 * @param robotnames
 	 */
 	public RobotDataList(String[] robotnames){
-		datalist=new ArrayList<RobotData>();
-		if(robotnames==null) {
+		datalist = new ArrayList<RobotData>();
+		if(robotnames == null){
 			return;
 		}
 		for(String name: robotnames){
@@ -27,6 +29,7 @@ public class RobotDataList{
 	/**
 	 * 名前がnameであるロボットの{@link RobotData}を返す．
 	 * 未登録のロボットの名前が引数である場合は新しく{@link RobotData}を作成しそれを返す．
+	 *
 	 * @param name
 	 * @return 名前がnameであるロボットの{@link RobotData}
 	 */
@@ -45,6 +48,7 @@ public class RobotDataList{
 
 	/**
 	 * 全ての敵ロボットの{@link RobotData}を持つArrayListを返す．
+	 *
 	 * @return 全ての敵ロボットの{@link RobotData}を持つArrayList
 	 */
 	public ArrayList<RobotData> getEnemies(){
