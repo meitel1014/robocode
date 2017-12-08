@@ -113,7 +113,7 @@ public class G05 extends TeamRobot{
 	}
 	
 	private double changeDistanceForRobo(double radian) {
-		double direction = -(radian-(Math.PI/4));
+		double direction = -(radian-(Math.PI/2));
 		return direction;
 	}
 }
