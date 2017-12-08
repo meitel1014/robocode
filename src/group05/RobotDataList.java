@@ -67,7 +67,7 @@ public class RobotDataList{
 	public void onScannedRobot(ScannedRobotEvent e) {
 		RobotData robo = new RobotData(e.getName(),true);
 		if(robo.isTeammate() == false) {
-			int count=0;//2回目以降のスキャンでもカウントすることが無いようにしたいが、毎回定義してそう、、、
+			int count=0;//2回目以降のスキャンでもカウントすることが無いようにしたいが、毎回定義されてそう
 			if(e.getBearing() >160 || e.getBearing() <-160 ) {
 				if(count == 0) {
 					robo.addDefendpoint(1);
