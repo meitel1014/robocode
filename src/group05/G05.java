@@ -23,7 +23,7 @@ public class G05 extends TeamRobot{
 		setScanColor(Color.white);
 		// 各ロボットのデータリストを作成 チームメイトのデータをまず登録
 		data = new RobotDataList(getTeammates());
-		
+
 		while(true){
 			setAhead(100);
 			double direction = this.getDirection()-this.getHeadingRadians();
@@ -33,38 +33,38 @@ public class G05 extends TeamRobot{
 		}
 	}
 
-	// ロボットをスキャンした時
-	public void onScannedRobot(ScannedRobotEvent e){
-		// // 敵が近くにいて自分の体力が多い時
-		// if (e.getDistance() < 50 && getEnergy() > 50) {
-		// fire(3);
-		// } // otherwise, fire 1.
-		// else {
-		// fire(1);
-		// }
-		// // Call scan again, before we turn the gun
-		// scan();
+	//スキャンしたときにこちらを向いているときだけ防御ポイントを1上げる
+	public void onScannedRobot(ScannedRobotEvent e) {
+		RobotData robo = new RobotData(e.getName(),true);
+		if(robo.isTeammate() == false) {
+			int count=0;//2回目以降のスキャンでもカウントすることが無いようにしたいが、毎回定義されてそう
+			if(e.getBearing() >160 || e.getBearing() <-160 ) {
+				if(count == 0) {
+					robo.addDefendpoint(1);
+					count = 1;
+				}
+				else {
+					if(count == 1) {
+						robo.subDefendpoint(1);
+						count = 0;
+					}
+				}
+			}
+		}
 	}
 
-	// 敵の弾に当たった時
+	//敵の弾に当たった時に防御ポイントを1上げる
 	public void onHitByBullet(HitByBulletEvent e){
-		// turnRight(normalRelativeAngleDegrees(90 - (getHeading() -
-		// e.getHeading())));
-		//
-		// ahead(dist);
-		// dist *= -1;
-		// scan();
+		RobotData robo = new RobotData(e.getName(),true);//とりあえずtrue代入したが、良いのか？
+		if(robo.isTeammate() == false)
+			robo.addDefendpoint(1);//攻撃をしてきた相手の防御ポイントを1上げる
 	}
 
-	// 敵にぶつかった時
+
 	public void onHitRobot(HitRobotEvent e){
-		// double turnGunAmt = normalRelativeAngleDegrees(e.getBearing() +
-		// getHeading() - getGunHeading());
-		//
-		// turnGunRight(turnGunAmt);
-		// fire(3);
+
 	}
-	
+
 	//動くべき方向をラジアンで返す
 	private double getDirection() {
 		double direction;//反重力法で導かれた移動する向き
@@ -74,12 +74,12 @@ public class G05 extends TeamRobot{
 		double distance;//各ロボットとの距離（計算の過程で用いるだけなので値は一時的にしか保持しない）
 		double power;//各ロボットから受ける反発力（上に同じ）
 		Point2D.Double posi;//各ロボットの座標を保存（上に同じ）
-		
+
 		ArrayList<RobotData> list = data.getEnemies();
-		
+
 		forcex = 0;
 		forcey = 0;
-		
+
 		for(RobotData info : list) {
 			posi = info.getPosition();
 			distance = Math.sqrt( Math.pow((myx - posi.getX()),2) + Math.pow((myy + posi.getY()),2));
