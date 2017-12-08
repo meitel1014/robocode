@@ -13,6 +13,7 @@ public class G05 extends TeamRobot{
 	int dist = 50; // あたったときに逃げる距離
 	boolean movingForward; //
 	RobotDataList data;
+	int wallpoint = 2; //壁の重力
 
 	public void run(){
 		// 機体のデザイン
@@ -80,6 +81,9 @@ public class G05 extends TeamRobot{
 		forcex = 0;
 		forcey = 0;
 		
+		/*
+		 * 敵ロボットとの反重力
+		 */
 		for(RobotData info : list) {
 			posi = info.getPosition();
 			distance = Math.sqrt( Math.pow((myx - posi.getX()),2) + Math.pow((myy + posi.getY()),2));
@@ -87,7 +91,23 @@ public class G05 extends TeamRobot{
 			forcex += power * ((myx - posi.getX())/distance);
 			forcey += power * ((myy - posi.getY())/distance);
 		}
-		direction = Math.acos(forcex/Math.sqrt(forcex*forcex+forcey*forcey));
+		
+		/*
+		 * 壁との反重力
+		 */
+		forcex += wallpoint / myx;
+		forcex += wallpoint / (1000 - myx);
+		forcey += wallpoint / myy;
+		forcey += wallpoint / (800 - myy);
+		
+		/*
+		 * ベクトルから方向への変換
+		 */
+		if((forcex != 0) || (forcey != 0)) {
+			direction = Math.acos(forcex/Math.sqrt(forcex*forcex+forcey*forcey));
+		}else {
+			direction = 0;
+		}
 		return direction;
 	}
 }
