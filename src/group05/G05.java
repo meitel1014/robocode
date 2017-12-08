@@ -113,7 +113,7 @@ public class G05 extends TeamRobot{
 	}
 	
 	/*
-	 * 数学角度からrobocode角度への変換
+	 * 数学角度からrobocodeの角度への変換
 	 */
 	private double changeDistanceForRobo(double radian) {
 		double direction = -(radian-(Math.PI/2));
