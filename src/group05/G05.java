@@ -21,10 +21,37 @@ abstract public class G05 extends TeamRobot{
 		setScanColor(Color.white);
 		// 各ロボットのデータリストを作成 チームメイトのデータをまず登録
 
+		setAdjustGunForRobotTurn(true);
+
+		boolean fired=true;//セットされた射撃が実行された後か
+		double power=0;
 		while(true){
-			setTurnRadarRight(360);
+			setTurnRadarRight(10000000);
+			RobotData target = data.getTarget();
 
+			double mTargetAngle;//自分から見たターゲットの角度
+			if(target != null && fired==true){
+				double distance = Math.sqrt(Math.pow((getX() - target.getPosition().getX()), 2) + Math.pow((getY() +
+						target.getPosition().getY()), 2));//ターゲットからの距離
+				if(distance <= 300){
+					power = 3;
+				}else if(distance > 300 && distance <= 600){
+					power = 2;
+				}else{
+					power = 1;
+				}
 
+				mTargetAngle = getmAngleBtwRobos(target.getPosition());
+				double rTurn = getRoboAngleFromMathAngle(mTargetAngle) - getGunHeadingRadians();//回転する量
+				setTurnGunRightRadians(rTurn);
+				fired=false;
+			}
+
+			if(getGunHeat() == 0 && power> 0.1 && Math.abs(getGunTurnRemaining()) < 2){
+				fire(power);
+				power = 0;
+				fired=true;
+			}
 
 			if(getDistanceRemaining() < 2 && getTurnRemaining() < 10){
 				getDirection();
@@ -78,8 +105,9 @@ abstract public class G05 extends TeamRobot{
 		ahead(100);
 	}
 
-	public void onHitWall(HitWallEvent e) {
+	public void onHitWall(HitWallEvent e){
 		clearAllEvents();
+		setTurnRadarRight(10000000);
 		getDirection();
 	}
 
@@ -126,7 +154,7 @@ abstract public class G05 extends TeamRobot{
 	}
 
 	private double getmAngleBtwRobos(Point2D.Double enemy){
-		double mAngle = Math.atan2( enemy.getY() - getY(),enemy.getX() - getX());
+		double mAngle = Math.atan2(enemy.getY() - getY(), enemy.getX() - getX());
 		if(enemy.getX() - getX() < 0){
 			mAngle += Math.PI;
 		}
@@ -135,7 +163,7 @@ abstract public class G05 extends TeamRobot{
 
 	void move(double x, double y){
 		double distance = 100;
-		double mDirection = Math.atan2(y,x);
+		double mDirection = Math.atan2(y, x);
 		if(x < 0){
 			mDirection += Math.PI;
 		}
@@ -156,7 +184,7 @@ abstract public class G05 extends TeamRobot{
 		}else{
 			sign = 1;
 		}
-		setTurnRight(rDirection);
+		setTurnRightRadians(rDirection);
 		return sign;
 	}
 
@@ -164,7 +192,7 @@ abstract public class G05 extends TeamRobot{
 	 * 数学角度からrobocodeの角度への変換
 	 */
 	private double getRoboAngleFromMathAngle(double mRadian){
-		double rDirection = -(mRadian + (Math.PI / 2));
+		double rDirection = -(mRadian - (Math.PI / 2));
 		return rDirection;
 	}
 }

@@ -46,6 +46,22 @@ public class RobotDataList{
 		return newdata;
 	}
 
+	public RobotData getTarget() {
+		int point=-1;
+		RobotData ret = null;
+
+		for(RobotData data: datalist){
+			if(!data.isTeammate()){
+				if(point<data.getAttackPoint()) {
+					point=data.getAttackPoint();
+					ret=data;
+				}
+			}
+		}
+
+		return ret;
+	}
+
 	/**
 	 * 全ての敵ロボットの{@link RobotData}を持つArrayListを返す．
 	 *
