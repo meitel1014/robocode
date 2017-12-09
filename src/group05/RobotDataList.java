@@ -35,7 +35,7 @@ public class RobotDataList{
 	 */
 	public RobotData get(String name){
 		for(RobotData data: datalist){
-			if(name == data.getName()){
+			if(name.equals(data.getName())){
 				return data;
 			}
 		}
@@ -46,15 +46,15 @@ public class RobotDataList{
 		return newdata;
 	}
 
-	public RobotData getTarget() {
-		int point=-1;
+	public RobotData getTarget(){
+		int point = -1;
 		RobotData ret = null;
 
 		for(RobotData data: datalist){
 			if(!data.isTeammate()){
-				if(point<data.getAttackPoint()) {
-					point=data.getAttackPoint();
-					ret=data;
+				if(point < data.getAttackPoint()){
+					point = data.getAttackPoint();
+					ret = data;
 				}
 			}
 		}
@@ -81,9 +81,9 @@ public class RobotDataList{
 		return datalist;
 	}
 
-	public void remove(String name) {
-		for(int i=0;i<datalist.size();i++){
-			if(name == datalist.get(i).getName()){
+	public void remove(String name){
+		for(int i = 0; i < datalist.size(); i++){
+			if(name.equals(datalist.get(i).getName())){
 				datalist.remove(i);
 			}
 		}

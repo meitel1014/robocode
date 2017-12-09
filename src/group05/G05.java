@@ -7,10 +7,9 @@ import java.util.ArrayList;
 import robocode.*;
 
 abstract public class G05 extends TeamRobot{
-	int dist = 50; // あたったときに逃げる距離
-	boolean movingForward; //
+	final int dist = 100; // あたったときに逃げる距離
 	RobotDataList data;
-	int wallpoint = 10; // 壁の重力
+	final int wallpoint = 10; // 壁の重力
 
 	public void run(){
 		data = new RobotDataList(getTeammates());
@@ -23,16 +22,16 @@ abstract public class G05 extends TeamRobot{
 
 		setAdjustGunForRobotTurn(true);
 
-		boolean fired=true;//セットされた射撃が実行された後か
-		double power=0;
+		boolean fired = true;// セットされた射撃が実行された後か
+		double power = 0;
 		while(true){
 			setTurnRadarRight(10000000);
 			RobotData target = data.getTarget();
 
-			double mTargetAngle;//自分から見たターゲットの角度
-			if(target != null && fired==true){
+			double mTargetAngle;// 自分から見たターゲットの角度
+			if(target != null && fired == true){
 				double distance = Math.sqrt(Math.pow((getX() - target.getPosition().getX()), 2) + Math.pow((getY() +
-						target.getPosition().getY()), 2));//ターゲットからの距離
+						target.getPosition().getY()), 2));// ターゲットからの距離
 				if(distance <= 300){
 					power = 3;
 				}else if(distance > 300 && distance <= 600){
@@ -41,16 +40,15 @@ abstract public class G05 extends TeamRobot{
 					power = 1;
 				}
 
-				mTargetAngle = getmAngleBtwRobos(target.getPosition());
-				double rTurn = getRoboAngleFromMathAngle(mTargetAngle) - getGunHeadingRadians();//回転する量
+				double rTurn = getrAngleBtwRobos(target.getPosition()) - getGunHeadingRadians();// 回転する量
 				setTurnGunRightRadians(rTurn);
-				fired=false;
+				fired = false;
 			}
 
-			if(getGunHeat() == 0 && power> 0.1 && Math.abs(getGunTurnRemaining()) < 2){
+			if(getGunHeat() == 0 && power > 0.1 && Math.abs(getGunTurnRemaining()) < 2){
 				fire(power);
 				power = 0;
-				fired=true;
+				fired = true;
 			}
 
 			if(getDistanceRemaining() < 2 && getTurnRemaining() < 10){
@@ -85,6 +83,7 @@ abstract public class G05 extends TeamRobot{
 		}
 	}
 
+	//ロボットとの距離と角度からそのロボットの座標を計算する
 	private Point2D.Double getPosition(double distance, double absRoboRadians){
 		double x = getX() + distance * Math.cos(absRoboRadians);
 		double y = getY() + distance * Math.sin(absRoboRadians);
@@ -115,9 +114,7 @@ abstract public class G05 extends TeamRobot{
 		data.remove(robotName);
 	}
 
-	// 動くべき方向をラジアンで求める
 	private void getDirection(){
-		double direction;// 反重力法で導かれた移動する向き
 		double myx = this.getX();// 自ロボットのｘ座標
 		double myy = this.getY();// 自ロボットのｙ座標
 		double forcex, forcey;// 各ロボットから受けるｘ、ｙ軸方向の力
@@ -153,6 +150,7 @@ abstract public class G05 extends TeamRobot{
 		move(forcex, forcey);
 	}
 
+	//自分から見たenemyの数学角度を計算する
 	private double getmAngleBtwRobos(Point2D.Double enemy){
 		double mAngle = Math.atan2(enemy.getY() - getY(), enemy.getX() - getX());
 		if(enemy.getX() - getX() < 0){
@@ -161,20 +159,30 @@ abstract public class G05 extends TeamRobot{
 		return mAngle;
 	}
 
+	//自分から見たenemyのrobocode角度を計算する
+	private double getrAngleBtwRobos(Point2D.Double enemy){
+		return getrAngleFrommAngle(getmAngleBtwRobos(enemy));
+	}
+
+	/*
+	 * (x,y)の地点に移動する
+	 */
 	void move(double x, double y){
-		double distance = 100;
 		double mDirection = Math.atan2(y, x);
 		if(x < 0){
 			mDirection += Math.PI;
 		}
 		int rev = turnTo(mDirection);
-		setAhead(distance * rev);
+		setAhead(dist * rev);
 	}
 
+	/*
+	 * mAngleの方向に最短で回転する
+	 */
 	int turnTo(double mAngle){
 		double rDirection;
 		int sign;
-		rDirection = getRoboAngleFromMathAngle(mAngle) - getHeadingRadians();
+		rDirection = getrAngleFrommAngle(mAngle) - getHeadingRadians();
 		if(rDirection > Math.PI / 2){
 			rDirection -= Math.PI;
 			sign = -1;
@@ -191,7 +199,7 @@ abstract public class G05 extends TeamRobot{
 	/*
 	 * 数学角度からrobocodeの角度への変換
 	 */
-	private double getRoboAngleFromMathAngle(double mRadian){
+	private double getrAngleFrommAngle(double mRadian){
 		double rDirection = -(mRadian - (Math.PI / 2));
 		return rDirection;
 	}
