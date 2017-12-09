@@ -112,6 +112,10 @@ public class RobotData{
 		position.setLocation(x, y);
 	}
 
+	public void setPosition(Point2D.Double posi){
+		position = posi;
+	}
+
 	/**
 	 * このロボットの座標を返す．
 	 *

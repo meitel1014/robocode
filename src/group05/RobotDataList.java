@@ -64,4 +64,12 @@ public class RobotDataList{
 	public ArrayList<RobotData> getAll(){
 		return datalist;
 	}
+
+	public void remove(String name) {
+		for(int i=0;i<datalist.size();i++){
+			if(name == datalist.get(i).getName()){
+				datalist.remove(i);
+			}
+		}
+	}
 }
