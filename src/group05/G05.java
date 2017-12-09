@@ -4,16 +4,13 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import robocode.HitByBulletEvent;
-import robocode.HitRobotEvent;
-import robocode.ScannedRobotEvent;
-import robocode.TeamRobot;
+import robocode.*;
 
 abstract public class G05 extends TeamRobot{
 	int dist = 50; // あたったときに逃げる距離
 	boolean movingForward; //
 	RobotDataList data;
-	int wallpoint = 2; // 壁の重力
+	int wallpoint = 10; // 壁の重力
 
 	public void run(){
 		data = new RobotDataList(getTeammates());
@@ -25,17 +22,15 @@ abstract public class G05 extends TeamRobot{
 		// 各ロボットのデータリストを作成 チームメイトのデータをまず登録
 
 		while(true){
-			// setAhead(50);
-			// double direction = this.getDirection() -
-			// this.getHeadingRadians();
-			// setTurnRightRadians(direction);
-			// setTurnGunRight(180);
-
 			setTurnRadarRight(360);
-			getDirection();
-			do{
-				execute();
-			}while(getDistanceRemaining() != 0 && getTurnRemaining() != 0);
+
+
+
+			if(getDistanceRemaining() < 2 && getTurnRemaining() < 10){
+				getDirection();
+			}
+			execute();
+
 		}
 	}
 
@@ -73,16 +68,19 @@ abstract public class G05 extends TeamRobot{
 	// 敵の弾に当たった時に防御ポイントを1上げる
 	public void onHitByBullet(HitByBulletEvent e){
 		RobotData robo = data.get(e.getName());
-		if(robo.isTeammate() == false)
+		if(robo.isTeammate() == false){
 			robo.addBulletDefendpoint(1);// 攻撃をしてきた相手の防御ポイントを1上げる
+		}
 	}
 
 	public void onHitRobot(HitRobotEvent e){
-		// double turnGunAmt = normalRelativeAngleDegrees(e.getBearing() +
-		// getHeading() - getGunHeading());
-		//
-		// turnGunRight(turnGunAmt);
-		// fire(3);
+		ahead(-100);
+		ahead(100);
+	}
+
+	public void onHitWall(HitWallEvent e) {
+		clearAllEvents();
+		getDirection();
 	}
 
 	public void RobotDeathEvent(String robotName){
@@ -109,45 +107,57 @@ abstract public class G05 extends TeamRobot{
 		 */
 		for(RobotData info: list){
 			posi = info.getPosition();
-			distance = Math.sqrt(Math.pow((myx - posi.getX()), 2) + Math.pow((myy + posi.getY()), 2));
-			power = info.getDefendPoint() / distance;
-			forcex += power * ((myx - posi.getX()) / distance);
-			forcey += power * ((myy - posi.getY()) / distance);
+			distance = Math.sqrt(Math.pow((myx - posi.getX()), 2) + Math.pow((myy +
+					posi.getY()), 2));
+			power = info.getDefendPoint() / Math.pow(distance, 2);
+			forcex += power * (Math.cos(getmAngleBtwRobos(posi)));
+			forcey += power * (Math.sin(getmAngleBtwRobos(posi)));
 		}
 
 		/*
 		 * 壁との反重力
 		 */
-		forcex += wallpoint / myx;
-		forcex += wallpoint / (1000 - myx);
-		forcey += wallpoint / myy;
-		forcey += wallpoint / (800 - myy);
+		forcex += wallpoint / Math.pow(myx, 1.5);
+		forcex -= wallpoint / Math.pow(1000 - myx, 1.5);
+		forcey += wallpoint / Math.pow(myy, 1.5);
+		forcey -= wallpoint / Math.pow(800 - myy, 1.5);
 
-		goTo(getX() - forcex, getY() - forcey);
+		move(forcex, forcey);
 	}
 
-	void goTo(double x, double y){
+	private double getmAngleBtwRobos(Point2D.Double enemy){
+		double mAngle = Math.atan2( enemy.getY() - getY(),enemy.getX() - getX());
+		if(enemy.getX() - getX() < 0){
+			mAngle += Math.PI;
+		}
+		return mAngle;
+	}
+
+	void move(double x, double y){
 		double distance = 100;
-		double mDirection = Math.atan2(getX() - x, getY() - y);
+		double mDirection = Math.atan2(y,x);
+		if(x < 0){
+			mDirection += Math.PI;
+		}
 		int rev = turnTo(mDirection);
 		setAhead(distance * rev);
 	}
 
-	int turnTo(double angle){
+	int turnTo(double mAngle){
 		double rDirection;
-		int dir;
-		rDirection = getRoboAngleFromMathAngle(getHeadingRadians() - angle);
+		int sign;
+		rDirection = getRoboAngleFromMathAngle(mAngle) - getHeadingRadians();
 		if(rDirection > Math.PI / 2){
 			rDirection -= Math.PI;
-			dir = -1;
+			sign = -1;
 		}else if(rDirection < -Math.PI / 2){
 			rDirection += Math.PI;
-			dir = -1;
+			sign = -1;
 		}else{
-			dir = 1;
+			sign = 1;
 		}
-		setTurnLeft(rDirection);
-		return dir;
+		setTurnRight(rDirection);
+		return sign;
 	}
 
 	/*
