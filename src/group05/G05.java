@@ -2,9 +2,13 @@ package group05;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
+import java.util.List;
 
-import robocode.*;
+import robocode.HitByBulletEvent;
+import robocode.HitRobotEvent;
+import robocode.HitWallEvent;
+import robocode.ScannedRobotEvent;
+import robocode.TeamRobot;
 
 abstract public class G05 extends TeamRobot{
 	final int dist = 100; // あたったときに逃げる距離
@@ -28,9 +32,8 @@ abstract public class G05 extends TeamRobot{
 			setTurnRadarRight(10000000);
 			RobotData target = data.getTarget();
 
-			double mTargetAngle;// 自分から見たターゲットの角度
 			if(target != null && fired == true){
-				double distance = Math.sqrt(Math.pow((getX() - target.getPosition().getX()), 2) + Math.pow((getY() +
+				double distance = Math.sqrt(Math.pow((getX() - target.getPosition().getX()), 2) + Math.pow((getY() -
 						target.getPosition().getY()), 2));// ターゲットからの距離
 				if(distance <= 300){
 					power = 3;
@@ -45,7 +48,7 @@ abstract public class G05 extends TeamRobot{
 				fired = false;
 			}
 
-			if(getGunHeat() == 0 && power > 0.1 && Math.abs(getGunTurnRemaining()) < 2){
+			if(getGunHeat() == 0 && power > 0.1 && Math.abs(getGunTurnRemaining()) < 10){
 				fire(power);
 				power = 0;
 				fired = true;
@@ -122,7 +125,7 @@ abstract public class G05 extends TeamRobot{
 		double power;// 各ロボットから受ける反発力（上に同じ）
 		Point2D.Double posi;// 各ロボットの座標を保存（上に同じ）
 
-		ArrayList<RobotData> list = data.getAll();
+		List<RobotData> list = data.getAll();
 
 		forcex = 0;
 		forcey = 0;

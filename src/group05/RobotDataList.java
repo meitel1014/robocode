@@ -1,6 +1,8 @@
 package group05;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;;
 
 /**
  * 各ロボットに対する{@link RobotData}を格納するクラス．
@@ -9,7 +11,7 @@ import java.util.ArrayList;
  *
  */
 public class RobotDataList{
-	private ArrayList<RobotData> datalist;
+	private List<RobotData> datalist;
 
 	/**
 	 * 味方ロボットの名前をString配列で受け取りそれらに対する{@link RobotData}を作成する．
@@ -17,7 +19,7 @@ public class RobotDataList{
 	 * @param robotnames
 	 */
 	public RobotDataList(String[] robotnames){
-		datalist = new ArrayList<RobotData>();
+		datalist = Collections.synchronizedList(new ArrayList<RobotData>());
 		if(robotnames == null){
 			return;
 		}
@@ -50,12 +52,10 @@ public class RobotDataList{
 		int point = -1;
 		RobotData ret = null;
 
-		for(RobotData data: datalist){
-			if(!data.isTeammate()){
-				if(point < data.getAttackPoint()){
-					point = data.getAttackPoint();
-					ret = data;
-				}
+		for(RobotData data:this.getEnemies()){
+			if(point < data.getAttackPoint()){
+				point = data.getAttackPoint();
+				ret = data;
 			}
 		}
 
@@ -63,12 +63,12 @@ public class RobotDataList{
 	}
 
 	/**
-	 * 全ての敵ロボットの{@link RobotData}を持つArrayListを返す．
+	 * 全ての敵ロボットの{@link RobotData}を持つListを返す．
 	 *
-	 * @return 全ての敵ロボットの{@link RobotData}を持つArrayList
+	 * @return 全ての敵ロボットの{@link RobotData}を持つList
 	 */
-	public ArrayList<RobotData> getEnemies(){
-		ArrayList<RobotData> ret = new ArrayList<RobotData>();
+	public List<RobotData> getEnemies(){
+		List<RobotData> ret =Collections.synchronizedList(new ArrayList<RobotData>());
 		for(RobotData data: datalist){
 			if(!data.isTeammate()){
 				ret.add(data);
@@ -77,7 +77,7 @@ public class RobotDataList{
 		return ret;
 	}
 
-	public ArrayList<RobotData> getAll(){
+	public List<RobotData> getAll(){
 		return datalist;
 	}
 
