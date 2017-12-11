@@ -27,7 +27,11 @@ public class RobotData{
 		this.isTeammate = isTeammate;
 		attackPointByDistance = 0;
 		attackPointByDirection = 0;
-		defendPointByBullet = 2;
+		if(isTeammate) {
+			defendPointByBullet = 2;
+		}else {
+			defendPointByBullet = 0;
+		}
 		defendPointByDirection = 0;
 		position = new Point2D.Double();
 	}

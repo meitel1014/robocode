@@ -2,29 +2,29 @@ package group05;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.util.List;
 
 import robocode.HitByBulletEvent;
 import robocode.HitRobotEvent;
 import robocode.HitWallEvent;
+import robocode.RobotDeathEvent;
 import robocode.ScannedRobotEvent;
 import robocode.TeamRobot;
 
 abstract public class G05 extends TeamRobot{
-	final int dist = 100; // あたったときに逃げる距離
+	final int dist = 10; // 一度に移動する距離
 	RobotDataList data;
-	final int wallpoint = 10; // 壁の重力
+	final int wallpoint = 2; // 壁の重力
 
 	public void run(){
 		data = new RobotDataList(getTeammates());
-		setBodyColor(Color.black);
+		setBodyColor(Color.pink);
 		setGunColor(Color.blue);
 		setRadarColor(Color.yellow);
 		setBulletColor(Color.red);
 		setScanColor(Color.white);
 		// 各ロボットのデータリストを作成 チームメイトのデータをまず登録
 
-		setAdjustGunForRobotTurn(true);
+		setAdjustGunForRobotTurn(false);
 
 		boolean fired = true;// セットされた射撃が実行された後か
 		double power = 0;
@@ -43,8 +43,8 @@ abstract public class G05 extends TeamRobot{
 					power = 1;
 				}
 
-				double rTurn = getrAngleBtwRobos(target.getPosition()) - getGunHeadingRadians();// 回転する量
-				setTurnGunRightRadians(rTurn);
+				double rTurn=getGunHeadingRadians()+getAngleBtwRobos(target.getPosition())-Math.PI/2;
+				setTurnGunLeftRadians(rTurn);
 				fired = false;
 			}
 
@@ -65,9 +65,9 @@ abstract public class G05 extends TeamRobot{
 	// スキャンしたときにこちらを向いているときだけ防御ポイントを1上げる
 	public void onScannedRobot(ScannedRobotEvent e){
 		RobotData robo = data.get(e.getName());
-
+		robo.setPosition(getPosition(e.getDistance(), e.getBearingRadians()));
 		if(robo.isTeammate() == false){
-			robo.setPosition(getPosition(e.getDistance(), e.getBearingRadians()));
+			System.out.println(e.getName()+ getPosition(e.getDistance(), e.getBearingRadians()));
 
 			if(e.getBearing() > 160 || e.getBearing() < -160){
 				robo.setDirectionDefendpoint(1);
@@ -87,9 +87,11 @@ abstract public class G05 extends TeamRobot{
 	}
 
 	//ロボットとの距離と角度からそのロボットの座標を計算する
-	private Point2D.Double getPosition(double distance, double absRoboRadians){
-		double x = getX() + distance * Math.cos(absRoboRadians);
-		double y = getY() + distance * Math.sin(absRoboRadians);
+	private Point2D.Double getPosition(double distance, double rrelRoboRadians){
+		double rabsRoboRadians=rrelRoboRadians+getHeadingRadians();
+		double mabsRoboRadians=getmAngleFromrAngle(rabsRoboRadians);
+		double x = getX() + distance * Math.cos(mabsRoboRadians);
+		double y = getY() + distance * Math.sin(mabsRoboRadians);
 
 		return new Point2D.Double(x, y);
 	}
@@ -103,18 +105,27 @@ abstract public class G05 extends TeamRobot{
 	}
 
 	public void onHitRobot(HitRobotEvent e){
-		ahead(-100);
-		ahead(100);
+		data.get(e.getName()).addDefendPointByHitByRobot(1);
+		escape(e.getBearingRadians());
 	}
 
 	public void onHitWall(HitWallEvent e){
-		clearAllEvents();
-		setTurnRadarRight(10000000);
-		getDirection();
+		//escape(e.getBearingRadians());
 	}
 
-	public void RobotDeathEvent(String robotName){
-		data.remove(robotName);
+	private void escape(double rAngle) {
+		System.out.println("escape");
+		clearAllEvents();
+		setTurnRadarRight(1000);
+		if(Math.abs(rAngle)<Math.PI/2) {//衝突先が前方にある
+			ahead(-5*dist);
+		}else {//衝突先が後方にある
+			ahead(5*dist);
+		}
+	}
+
+	public void onRobotDeath(RobotDeathEvent e){
+		data.remove(e.getName());
 	}
 
 	private void getDirection(){
@@ -124,8 +135,7 @@ abstract public class G05 extends TeamRobot{
 		double distance;// 各ロボットとの距離（計算の過程で用いるだけなので値は一時的にしか保持しない）
 		double power;// 各ロボットから受ける反発力（上に同じ）
 		Point2D.Double posi;// 各ロボットの座標を保存（上に同じ）
-
-		List<RobotData> list = data.getAll();
+		Point2D.Double force;
 
 		forcex = 0;
 		forcey = 0;
@@ -133,48 +143,54 @@ abstract public class G05 extends TeamRobot{
 		/*
 		 * 敵ロボットとの反重力
 		 */
-		for(RobotData info: list){
-			posi = info.getPosition();
-			distance = Math.sqrt(Math.pow((myx - posi.getX()), 2) + Math.pow((myy +
-					posi.getY()), 2));
-			power = info.getDefendPoint() / Math.pow(distance, 2);
-			forcex += power * (Math.cos(getmAngleBtwRobos(posi)));
-			forcey += power * (Math.sin(getmAngleBtwRobos(posi)));
+		for(RobotData info: data.getAll()){
+			System.out.println(info.getName()+"defence:"+info.getDefendPoint());
+			System.out.println("posi:"+info.getPosition());
+			force=getForce(info.getDefendPoint(), info.getPosition());
+			forcex+=force.getX();
+			forcey+=force.getY();
 		}
+
+		force=getForce(data.getAvgDefendPoint(), new Point2D.Double(getBattleFieldWidth()/2,getBattleFieldHeight()/2));
+		forcex+=force.getX();
+		forcey+=force.getY();
 
 		/*
 		 * 壁との反重力
 		 */
 		forcex += wallpoint / Math.pow(myx, 1.5);
-		forcex -= wallpoint / Math.pow(1000 - myx, 1.5);
+		forcex -= wallpoint / Math.pow(getBattleFieldWidth() - myx, 1.5);
 		forcey += wallpoint / Math.pow(myy, 1.5);
-		forcey -= wallpoint / Math.pow(800 - myy, 1.5);
+		forcey -= wallpoint / Math.pow(getBattleFieldHeight() - myy, 1.5);
 
+		System.out.println("forcex:"+forcex);
+		System.out.println("forcey:"+forcey);
 		move(forcex, forcey);
 	}
 
-	//自分から見たenemyの数学角度を計算する
-	private double getmAngleBtwRobos(Point2D.Double enemy){
-		double mAngle = Math.atan2(enemy.getY() - getY(), enemy.getX() - getX());
-		if(enemy.getX() - getX() < 0){
-			mAngle += Math.PI;
-		}
-		return mAngle;
+	private Point2D.Double getForce(double point, Point2D.Double position){
+		double distance = Math.sqrt(Math.pow((getX() - position.getX()), 2) + Math.pow((getY() -
+				position.getY()), 2));
+		double power = -point / Math.pow(distance, 2);
+		double forcex = power * (Math.cos(getAngleBtwRobos(position)));
+		double forcey = power * (Math.sin(getAngleBtwRobos(position)));
+		double angle=Math.atan2(forcey,forcex);
+		System.out.println("angle:"+Math.toDegrees(angle));
+		System.out.println("x:"+forcex+"y:"+forcey);
+		return new Point2D.Double(forcex,forcey);
 	}
 
-	//自分から見たenemyのrobocode角度を計算する
-	private double getrAngleBtwRobos(Point2D.Double enemy){
-		return getrAngleFrommAngle(getmAngleBtwRobos(enemy));
+	//自分から見たenemyの角度を計算する
+	private double getAngleBtwRobos(Point2D.Double enemy){
+		return Math.atan2(enemy.getY() - getY(), enemy.getX() - getX());
 	}
 
 	/*
-	 * (x,y)の地点に移動する
+	 * (x,y)の分だけ移動する
 	 */
-	void move(double x, double y){
+	private void move(double x, double y){
 		double mDirection = Math.atan2(y, x);
-		if(x < 0){
-			mDirection += Math.PI;
-		}
+
 		int rev = turnTo(mDirection);
 		setAhead(dist * rev);
 	}
@@ -182,7 +198,7 @@ abstract public class G05 extends TeamRobot{
 	/*
 	 * mAngleの方向に最短で回転する
 	 */
-	int turnTo(double mAngle){
+	private int turnTo(double mAngle){
 		double rDirection;
 		int sign;
 		rDirection = getrAngleFrommAngle(mAngle) - getHeadingRadians();
@@ -199,11 +215,15 @@ abstract public class G05 extends TeamRobot{
 		return sign;
 	}
 
+	private double getmAngleFromrAngle(double rRadian) {
+		return -rRadian+Math.PI/2;
+	}
+
 	/*
 	 * 数学角度からrobocodeの角度への変換
 	 */
 	private double getrAngleFrommAngle(double mRadian){
-		double rDirection = -(mRadian - (Math.PI / 2));
-		return rDirection;
+		double rRadian = -(mRadian - (Math.PI / 2));
+		return rRadian;
 	}
 }

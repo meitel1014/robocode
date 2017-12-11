@@ -81,6 +81,15 @@ public class RobotDataList{
 		return datalist;
 	}
 
+	public double getAvgDefendPoint() {
+		double ret=0;
+		for(int i=0;i<this.getAll().size();i++) {
+			ret+=datalist.get(i).getDefendPoint();
+		}
+
+		return ret;
+	}
+
 	public void remove(String name){
 		for(int i = 0; i < datalist.size(); i++){
 			if(name.equals(datalist.get(i).getName())){
