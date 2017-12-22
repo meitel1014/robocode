@@ -11,7 +11,7 @@ import robocode.ScannedRobotEvent;
 import robocode.TeamRobot;
 
 abstract public class G05 extends TeamRobot{
-	final int dist = 10; // 一度に移動する距離
+	final int dist = 100; // 一度に移動する距離
 	RobotDataList data;
 	final int wallpoint = 2; // 壁の重力
 
@@ -192,7 +192,7 @@ abstract public class G05 extends TeamRobot{
 		double mDirection = Math.atan2(y, x);
 
 		int rev = turnTo(mDirection);
-		setAhead(dist * rev);
+		ahead(dist * rev);
 	}
 
 	/*
@@ -211,7 +211,7 @@ abstract public class G05 extends TeamRobot{
 		}else{
 			sign = 1;
 		}
-		setTurnRightRadians(rDirection);
+		turnRightRadians(rDirection);
 		return sign;
 	}
 
