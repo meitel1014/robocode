@@ -10,23 +10,22 @@ import java.awt.geom.Point2D;
  */
 public class RobotData{
 	private String name;
-	private int attackPointByDistance, attackPointByDirection;
-	private int defendPointByBullet, defendPointByDirection, defendPointByHitByRobot;
+	private int attackPointByDistance=0, attackPointByDirection=0;
+	private int defendPointByBullet, defendPointByDirection=0, defendPointByHitByRobot=0;
+	private double energy;
 	private Point2D.Double position;
-	private double velocity;
+	private double velocity=0;
 	private boolean isTeammate;
 
 	/**
-	 * RobotDataListからのみ呼び出す，直接コンストラクタを使用してはならない．
+	 * RobotDataListからのみ呼び出す．直接コンストラクタを使用してはならない．
 	 *
 	 * @param name
 	 * @param isTeammate
 	 */
 	public RobotData(String name, boolean isTeammate){
 		this.name = name;
-		this.isTeammate = isTeammate;
-		attackPointByDistance = 0;
-		attackPointByDirection = 0;
+		this.isTeammate=isTeammate;
 		if(isTeammate) {
 			defendPointByBullet = 2;
 		}else {
@@ -119,10 +118,10 @@ public class RobotData{
 	/**
 	 * このロボットの座標をposiにする．
 	 *
-	 * @param posi
+	 * @param position
 	 */
-	public void setPosition(Point2D.Double posi){
-		position = posi;
+	public void setPosition(Point2D.Double position){
+		this.position = position;
 	}
 
 	/**
@@ -135,12 +134,24 @@ public class RobotData{
 	}
 
 	/**
+	 * このロボットと(x,y)との距離を返す．このメソッドは主に自分と相手の距離を取得するために用いる．
+	 *
+	 * @param x
+	 * @param y
+	 *
+	 * @return このロボットと(x,y)の距離
+	 */
+	public double getDistance(double x,double y) {
+		return Math.sqrt(Math.pow((x - getPosition().getX()), 2) + Math.pow((y -getPosition().getY()), 2));
+	}
+
+	/**
 	 * このロボットの速度を記録する，
 	 *
-	 * @param v
+	 * @param velocity
 	 */
-	public void setVelocity(double v){
-		velocity = v;
+	public void setVelocity(double velocity){
+		this.velocity = velocity;
 	}
 
 	/**
@@ -159,6 +170,24 @@ public class RobotData{
 	 */
 	public String getName(){
 		return name;
+	}
+
+	/**
+	 * このロボットの残り体力を記録する，
+	 *
+	 * @param energy
+	 */
+	public void setEnergy(double energy){
+		this.energy = energy;
+	}
+
+	/**
+	 * このロボットの残り体力を返す．
+	 *
+	 * @return このロボットの残り体力
+	 */
+	public double getEnergy(){
+		return energy;
 	}
 
 	/**

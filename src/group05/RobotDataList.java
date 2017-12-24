@@ -12,6 +12,7 @@ import java.util.List;;
  */
 public class RobotDataList{
 	private List<RobotData> datalist;
+	private int walls = 3;
 
 	/**
 	 * 味方ロボットの名前をString配列で受け取りそれらに対する{@link RobotData}を作成する．
@@ -48,11 +49,16 @@ public class RobotDataList{
 		return newdata;
 	}
 
+	/**
+	 * 最も攻撃ポイントが高いロボットの{@link RobotData}を返す．
+	 *
+	 * @return 最も攻撃ポイントが高いロボットの{@link RobotData}
+	 */
 	public RobotData getTarget(){
 		int point = -1;
 		RobotData ret = null;
 
-		for(RobotData data:this.getEnemies()){
+		for(RobotData data: this.getEnemies()){
 			if(point < data.getAttackPoint()){
 				point = data.getAttackPoint();
 				ret = data;
@@ -68,7 +74,7 @@ public class RobotDataList{
 	 * @return 全ての敵ロボットの{@link RobotData}を持つList
 	 */
 	public List<RobotData> getEnemies(){
-		List<RobotData> ret =Collections.synchronizedList(new ArrayList<RobotData>());
+		List<RobotData> ret = Collections.synchronizedList(new ArrayList<RobotData>());
 		for(RobotData data: datalist){
 			if(!data.isTeammate()){
 				ret.add(data);
@@ -77,20 +83,48 @@ public class RobotDataList{
 		return ret;
 	}
 
+	/**
+	 * 全てのロボットの{@link RobotData}を持つListを返す．
+	 *
+	 * @return 全てのロボットの{@link RobotData}を持つList
+	 */
 	public List<RobotData> getAll(){
 		return datalist;
 	}
 
-	public double getAvgDefendPoint() {
-		double ret=0;
-		for(int i=0;i<this.getAll().size();i++) {
-			ret+=datalist.get(i).getDefendPoint();
+	/**
+	 * 全てのロボットの防御ポイントの合計を返す．
+	 *
+	 * @return 全てのロボットの防御ポイントの合計
+	 */
+	public double getTotalDefendPoint(){
+		double ret = 0;
+		for(int i = 0; i < this.getAll().size(); i++){
+			ret += datalist.get(i).getDefendPoint();
 		}
 
 		return ret;
 	}
 
+	/**
+	 * 生存しているWallsの数を返す．
+	 *
+	 * @return 生存しているWallsの数
+	 */
+	public int walls(){
+		return walls;
+	}
+
+	/**
+	 * 名前がnameであるロボットのデータを削除する． このメソッドはロボットが死んだ時に呼び出す．
+	 *
+	 * @param name
+	 */
 	public void remove(String name){
+		if(name.contains("Walls")){
+			walls--;
+		}
+
 		for(int i = 0; i < datalist.size(); i++){
 			if(name.equals(datalist.get(i).getName())){
 				datalist.remove(i);
