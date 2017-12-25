@@ -3,7 +3,12 @@ package group05;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 
-import robocode.*;
+import robocode.HitByBulletEvent;
+import robocode.HitRobotEvent;
+import robocode.HitWallEvent;
+import robocode.RobotDeathEvent;
+import robocode.ScannedRobotEvent;
+import robocode.TeamRobot;
 
 abstract public class G05 extends TeamRobot{
 	final int dist = 100; // 一度に移動する距離
@@ -37,9 +42,25 @@ abstract public class G05 extends TeamRobot{
 					power = 1;
 				}
 
-				double rTurn = getGunHeadingRadians() + getAngleBtwRobos(target.getPosition()) - Math.PI / 2;
-				setTurnGunLeftRadians(rTurn);
-				fired = false;
+				//ウォールの数が0になったときに分岐
+				if(data.walls() != 0) {
+					double rTurn = getGunHeadingRadians() + getAngleBtwRobos(target.getPosition()) - Math.PI / 2;
+					setTurnGunLeftRadians(rTurn);
+					fired = false;
+				}else {
+						//大砲の向きを戦車の向きと同じにしている。
+						//角度が0から2πになるようにif文で分岐した。
+
+						if(this.getGunHeadingRadians() - this.getHeadingRadians() > 0) {
+							double rTurn = getGunHeadingRadians() - getHeadingRadians();
+							setTurnGunLeftRadians(rTurn);
+							fired = false;
+						}else {
+							double rTurn = getHeadingRadians() - getGunHeadingRadians();
+							setTurnGunLeftRadians(rTurn);
+							fired = false;
+						}
+				}
 			}
 
 			if(getGunHeat() == 0 && power > 0.1 && Math.abs(getGunTurnRemaining()) < 10){
@@ -135,33 +156,55 @@ abstract public class G05 extends TeamRobot{
 		forcex = 0;
 		forcey = 0;
 
-		/*
-		 * 敵ロボットとの反重力
-		 */
-		for(RobotData info: data.getAll()){
-			System.out.println(info.getName() + "defence:" + info.getDefendPoint());
-			System.out.println("posi:" + info.getPosition());
-			force = getForce(info.getDefendPoint(), info.getPosition());
+		//ウォールを倒した後に分岐する
+
+		if(data.walls() != 0) {
+
+			/*
+			 * 敵ロボットとの反重力
+			 */
+			for(RobotData info: data.getAll()){
+				System.out.println(info.getName() + "defence:" + info.getDefendPoint());
+				System.out.println("posi:" + info.getPosition());
+				force = getForce(info.getDefendPoint(), info.getPosition());
+				forcex += force.getX();
+				forcey += force.getY();
+			}
+
+			force = getForce(data.getTotalDefendPoint(),
+					new Point2D.Double(getBattleFieldWidth() / 2, getBattleFieldHeight() / 2));
 			forcex += force.getX();
 			forcey += force.getY();
+
+			/*
+			 * 壁との反重力
+			 */
+			forcex += wallpoint / Math.pow(myx, 1.5);
+			forcex -= wallpoint / Math.pow(getBattleFieldWidth() - myx, 1.5);
+			forcey += wallpoint / Math.pow(myy, 1.5);
+			forcey -= wallpoint / Math.pow(getBattleFieldHeight() - myy, 1.5);
+
+			System.out.println("forcex:" + forcex);
+			System.out.println("forcey:" + forcey);
+			move(forcex, forcey);
+
+		}else {
+			//どの戦車を狙うかを決めている。残り体力の最も少ない戦車を攻撃する。
+			RobotData target = null;
+
+			for(RobotData info: data.getAll()){
+				if(info.getEnergy() < target.getEnergy() || target == null)
+					target = info;
+			}
+			//防御ポイントは使用していない
+			force = getForce(target.getDefendPoint(), target.getPosition());
+			forcex += force.getX();
+			forcey += force.getY();
+
+			System.out.println("forcex:" + forcex);
+			System.out.println("forcey:" + forcey);
+			move(-forcex, -forcey);
 		}
-
-		force = getForce(data.getTotalDefendPoint(),
-				new Point2D.Double(getBattleFieldWidth() / 2, getBattleFieldHeight() / 2));
-		forcex += force.getX();
-		forcey += force.getY();
-
-		/*
-		 * 壁との反重力
-		 */
-		forcex += wallpoint / Math.pow(myx, 1.5);
-		forcex -= wallpoint / Math.pow(getBattleFieldWidth() - myx, 1.5);
-		forcey += wallpoint / Math.pow(myy, 1.5);
-		forcey -= wallpoint / Math.pow(getBattleFieldHeight() - myy, 1.5);
-
-		System.out.println("forcex:" + forcex);
-		System.out.println("forcey:" + forcey);
-		move(forcex, forcey);
 	}
 
 	private Point2D.Double getForce(double point, Point2D.Double position){
