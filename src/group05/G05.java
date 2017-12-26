@@ -11,13 +11,14 @@ abstract public class G05 extends TeamRobot{
 	final int wallpoint = 2; // 壁の重力
 
 	public void run(){
-		// 各ロボットのデータリストを作成 チームメイトのデータをまず登録
-		data = new RobotDataList(getTeammates());
 		setBodyColor(Color.pink);
 		setGunColor(Color.blue);
 		setRadarColor(Color.yellow);
 		setBulletColor(Color.red);
 		setScanColor(Color.white);
+		// 各ロボットのデータリストを作成 自分のデータをまず登録
+		data = RobotDataList.getInstance();
+		data.setMe(getName());
 
 		setAdjustGunForRobotTurn(true);
 
@@ -60,6 +61,7 @@ abstract public class G05 extends TeamRobot{
 		RobotData robo = data.get(e.getName());
 		robo.setPosition(getPosition(e.getDistance(), e.getBearingRadians()));
 		robo.setEnergy(e.getEnergy());
+
 		if(robo.isTeammate() == false){
 			System.out.println(e.getName() + getPosition(e.getDistance(), e.getBearingRadians()));
 
@@ -211,14 +213,17 @@ abstract public class G05 extends TeamRobot{
 		return sign;
 	}
 
-	private double torAngle(double rRadian){
+	/*
+	 * robocodeの角度から数学角度への変換
+	 */
+	public static double tomAngle(double rRadian){
 		return -rRadian + Math.PI / 2;
 	}
 
 	/*
 	 * 数学角度からrobocodeの角度への変換
 	 */
-	private double tomAngle(double mRadian){
+	public static double torAngle(double mRadian){
 		return -(mRadian - (Math.PI / 2));
 	}
 }

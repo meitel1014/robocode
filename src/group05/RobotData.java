@@ -15,6 +15,8 @@ public class RobotData{
 	private double energy;
 	private Point2D.Double position;
 	private double velocity=0;
+	private double bearing=0;
+	private long time=0;
 	private boolean isTeammate;
 
 	/**
@@ -188,6 +190,62 @@ public class RobotData{
 	 */
 	public double getEnergy(){
 		return energy;
+	}
+
+	/**
+	 * 記録の最終更新時間を記録する．
+	 * 何かを記録したらその後に必ず呼ぶこと．
+	 * 引数にはRobotのgetTime()メソッドで得られる時間を用いること．
+	 *
+	 * @param time
+	 */
+	public void setTime(long time){
+		this.time = time;
+	}
+
+	/**
+	 * 記録の最終更新時間を返す．
+	 *
+	 * @return 記録の最終更新時間
+	 */
+	public long getTime() {
+		return time;
+	}
+
+	/**
+	 * ロボットの向いている数学絶対角度を記録する．
+	 *
+	 * @param mradians
+	 */
+	public void setmBearing(double mRadians){
+		this.bearing = mRadians;
+	}
+
+	/**
+	 * ロボットの向いているRobocode絶対角度を記録する．
+	 *
+	 * @param radians
+	 */
+	public void setrBearing(double rRadians){
+		this.bearing = G05.tomAngle(rRadians);
+	}
+
+	/**
+	 * ロボットの向いている数学絶対角度をを返す．
+	 *
+	 * @return ロボットの向いている数学絶対角度
+	 */
+	public double getmBearing() {
+		return bearing;
+	}
+
+	/**
+	 * ロボットの向いているRobocode絶対角度をを返す．
+	 *
+	 * @return ロボットの向いているRobocode絶対角度
+	 */
+	public double getrBearing() {
+		return G05.torAngle(bearing);
 	}
 
 	/**

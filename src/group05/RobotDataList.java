@@ -11,22 +11,24 @@ import java.util.List;;
  *
  */
 public class RobotDataList{
-	private List<RobotData> datalist;
+	private static RobotDataList data = new RobotDataList();// シングルトン
+	private List<RobotData> datalist = Collections.synchronizedList(new ArrayList<RobotData>());;
 	private int walls = 3;
 
+	private RobotDataList(){}
+
+	public static RobotDataList getInstance(){
+		return data;
+	}
+
 	/**
-	 * 味方ロボットの名前をString配列で受け取りそれらに対する{@link RobotData}を作成する．
+	 * 自分の名前を受け取りそれに対する{@link RobotData}を作成する．
 	 *
-	 * @param robotnames
+	 * @param name
+	 * @return
 	 */
-	public RobotDataList(String[] robotnames){
-		datalist = Collections.synchronizedList(new ArrayList<RobotData>());
-		if(robotnames == null){
-			return;
-		}
-		for(String name: robotnames){
-			datalist.add(new RobotData(name, true));
-		}
+	public void setMe(String name){
+		datalist.add(new RobotData(name, true));
 	}
 
 	/**
