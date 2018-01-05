@@ -3,7 +3,12 @@ package group05;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 
-import robocode.*;
+import robocode.HitByBulletEvent;
+import robocode.HitRobotEvent;
+import robocode.HitWallEvent;
+import robocode.RobotDeathEvent;
+import robocode.ScannedRobotEvent;
+import robocode.TeamRobot;
 
 abstract public class G05 extends TeamRobot{
 	final int dist = 100; // 一度に移動する距離
@@ -61,6 +66,7 @@ abstract public class G05 extends TeamRobot{
 		RobotData robo = data.get(e.getName());
 		robo.setPosition(getPosition(e.getDistance(), e.getBearingRadians()));
 		robo.setEnergy(e.getEnergy());
+		robo.setVelocity(e.getVelocity());	//new
 
 		if(robo.isTeammate() == false){
 			System.out.println(e.getName() + getPosition(e.getDistance(), e.getBearingRadians()));

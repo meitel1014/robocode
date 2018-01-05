@@ -256,4 +256,49 @@ public class RobotData{
 	public boolean isTeammate(){
 		return isTeammate;
 	}
+
+	/**
+	 * 弾を発射する機体を基準とした相手の次の座標を返す．
+	 *
+	 * @param x0(弾を発射する機体の位置)
+	 * @param y0(弾を発射する機体の位置)
+	 * @param power(弾の強さ)
+	 *
+	 * @return
+	 */
+
+	public Point2D.Double getNextPosition(double x0, double y0, double power, double heading) {
+		double dx = position.getX() - x0;
+		double dy = position.getY() - y0;
+		double vx = velocity * Math.sin(Math.toRadians(heading));
+		double vy = velocity * Math.cos(Math.toRadians(heading));
+		double vp = 20 - 3 * power;
+		double A = (vx * vx) + (vy * vy) - (vp * vp);
+        double B = (2 * vx * dx) + (2 * vy * dy);
+        double C = (dx * dx) + (dy * dy);
+        double D = (B * B) - (4 * A * C);
+        double t1, t2, t = -1;
+
+        if (D >= 0) {
+            t1 = (-B + Math.sqrt(D))/(2*A);
+            t2 = (-B - Math.sqrt(D))/(2*A);
+            if (t1 < 0) {
+                if (t2 >= 0) {
+                    t = t2;
+                }
+            } else {
+                if (t2 < 0 || t1 < t2) {
+                    t = t1;
+                } else {
+                    t = t2;
+                }
+            }
+        }
+        if (t < 0) {
+            return null;
+        }
+        Point2D.Double np = new Point2D.Double(position.getX() + t * vx, position.getY() + t * vy);
+        return np;
+    }
+
 }
