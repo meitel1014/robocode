@@ -82,6 +82,7 @@ abstract public class G05 extends TeamRobot{
 		RobotData robo = data.get(e.getName());
 		robo.setPosition(getPosition(e.getDistance(), e.getBearingRadians()));
 		robo.setEnergy(e.getEnergy());
+		robo.setVelocity(e.getVelocity());	//new
 
 		if(robo.isTeammate() == false){
 			System.out.println(e.getName() + getPosition(e.getDistance(), e.getBearingRadians()));
