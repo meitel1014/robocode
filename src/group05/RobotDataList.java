@@ -52,22 +52,36 @@ public class RobotDataList{
 	}
 
 	/**
-	 * 最も攻撃ポイントが高いロボットの{@link RobotData}を返す．
+	 * ターゲットにする敵ロボットの{@link RobotData}を返す．
 	 *
-	 * @return 最も攻撃ポイントが高いロボットの{@link RobotData}
+	 * @return ターゲットにする敵ロボットの{@link RobotData}
 	 */
-	public RobotData getTarget(){
-		int point = -1;
-		RobotData ret = null;
+	public RobotData getTarget(String myName){
+		if(myName.contains("Leader")) {
+			if(walls>0) {
+				for(RobotData data: datalist){
+					if(data.getName().contains("Walls")){
+						if(data.isLeader) {
+							return data;
+						}
+					}
+				}
+			}else {
 
-		for(RobotData data: this.getEnemies()){
-			if(point < data.getAttackPoint()){
-				point = data.getAttackPoint();
-				ret = data;
+			}
+		}else {
+			if(walls>1) {
+				for(RobotData data: datalist){
+					if(data.getName().contains("Walls")){
+						if(!data.isLeader&&!data.isTargetted) {
+							data.isTargetted=true;
+							return data;
+						}
+					}
+				}
 			}
 		}
-
-		return ret;
+		return null;
 	}
 
 	/**

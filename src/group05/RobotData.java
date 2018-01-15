@@ -10,13 +10,14 @@ import java.awt.geom.Point2D;
  */
 public class RobotData{
 	private String name;
-	private int attackPointByDistance=0, attackPointByDirection=0;
-	private int defendPointByBullet, defendPointByDirection=0, defendPointByHitByRobot=0;
-	private double energy;
+	private int attackPointByDistance = 0, attackPointByDirection = 0;
+	private int defendPointByBullet, defendPointByDirection = 0, defendPointByHitByRobot = 0;
+	private double energy = -1;
 	private Point2D.Double position;
-	private double velocity=0;
-	private double bearing=0;
-	private long time=0;
+	private double velocity = 0;
+	private double bearing = 0;
+	private long time = 0;
+	public boolean isLeader, isDroid,isTargetted;
 	private boolean isTeammate;
 
 	/**
@@ -27,14 +28,22 @@ public class RobotData{
 	 */
 	public RobotData(String name, boolean isTeammate){
 		this.name = name;
-		this.isTeammate=isTeammate;
-		if(isTeammate) {
+		this.isTeammate = isTeammate;
+		if(isTeammate){
 			defendPointByBullet = 2;
-		}else {
+		}else{
 			defendPointByBullet = 0;
 		}
 		defendPointByDirection = 0;
 		position = new Point2D.Double();
+		// グループ機体の場合
+		if(!isTeammate){
+			if(name.contains("Leader")){
+				isLeader = true;
+			}else if(name.contains("Sub")){
+				isLeader = false;
+			}
+		}
 	}
 
 	/**
@@ -143,8 +152,8 @@ public class RobotData{
 	 *
 	 * @return このロボットと(x,y)の距離
 	 */
-	public double getDistance(double x,double y) {
-		return Math.sqrt(Math.pow((x - getPosition().getX()), 2) + Math.pow((y -getPosition().getY()), 2));
+	public double getDistance(double x, double y){
+		return Math.sqrt(Math.pow((x - getPosition().getX()), 2) + Math.pow((y - getPosition().getY()), 2));
 	}
 
 	/**
@@ -180,6 +189,21 @@ public class RobotData{
 	 * @param energy
 	 */
 	public void setEnergy(double energy){
+		if(this.energy == -1){
+			if(name.contains("Walls")) {
+				if(energy > 110){
+					isLeader = true;
+				}else{
+					isLeader = false;
+				}
+			}else {
+				if(!isLeader&&energy > 110){
+					isDroid = true;
+				}else{
+					isDroid = false;
+				}
+			}
+		}
 		this.energy = energy;
 	}
 
@@ -193,9 +217,7 @@ public class RobotData{
 	}
 
 	/**
-	 * 記録の最終更新時間を記録する．
-	 * 何かを記録したらその後に必ず呼ぶこと．
-	 * 引数にはRobotのgetTime()メソッドで得られる時間を用いること．
+	 * 記録の最終更新時間を記録する． 何かを記録したらその後に必ず呼ぶこと． 引数にはRobotのgetTime()メソッドで得られる時間を用いること．
 	 *
 	 * @param time
 	 */
@@ -208,7 +230,7 @@ public class RobotData{
 	 *
 	 * @return 記録の最終更新時間
 	 */
-	public long getTime() {
+	public long getTime(){
 		return time;
 	}
 
@@ -235,7 +257,7 @@ public class RobotData{
 	 *
 	 * @return ロボットの向いている数学絶対角度
 	 */
-	public double getmBearing() {
+	public double getmBearing(){
 		return bearing;
 	}
 
@@ -244,7 +266,7 @@ public class RobotData{
 	 *
 	 * @return ロボットの向いているRobocode絶対角度
 	 */
-	public double getrBearing() {
+	public double getrBearing(){
 		return G05.torAngle(bearing);
 	}
 
@@ -263,42 +285,41 @@ public class RobotData{
 	 * @param x0(弾を発射する機体の位置)
 	 * @param y0(弾を発射する機体の位置)
 	 * @param power(弾の強さ)
+	 * @param rHeading
+	 *            相手機体の向き(robocode絶対角度)
 	 *
 	 * @return
 	 */
-
-	public Point2D.Double getNextPosition(double x0, double y0, double power, double heading) {
+	public Point2D.Double getNextPosition(double x0, double y0, double power, double rHeading){
 		double dx = position.getX() - x0;
 		double dy = position.getY() - y0;
-		double vx = velocity * Math.sin(Math.toRadians(heading));
-		double vy = velocity * Math.cos(Math.toRadians(heading));
+		double vx = velocity * Math.sin(Math.toRadians(rHeading));
+		double vy = velocity * Math.cos(Math.toRadians(rHeading));
 		double vp = 20 - 3 * power;
 		double A = (vx * vx) + (vy * vy) - (vp * vp);
-        double B = (2 * vx * dx) + (2 * vy * dy);
-        double C = (dx * dx) + (dy * dy);
-        double D = (B * B) - (4 * A * C);
-        double t1, t2, t = -1;
-
-        if (D >= 0) {
-            t1 = (-B + Math.sqrt(D))/(2*A);
-            t2 = (-B - Math.sqrt(D))/(2*A);
-            if (t1 < 0) {
-                if (t2 >= 0) {
-                    t = t2;
-                }
-            } else {
-                if (t2 < 0 || t1 < t2) {
-                    t = t1;
-                } else {
-                    t = t2;
-                }
-            }
-        }
-        if (t < 0) {
-            return null;
-        }
-        Point2D.Double np = new Point2D.Double(position.getX() + t * vx, position.getY() + t * vy);
-        return np;
-    }
-
+		double B = (2 * vx * dx) + (2 * vy * dy);
+		double C = (dx * dx) + (dy * dy);
+		double D = (B * B) - (4 * A * C);
+		double t1, t2, t = -1;
+		if(D >= 0){
+			t1 = (-B + Math.sqrt(D)) / (2 * A);
+			t2 = (-B - Math.sqrt(D)) / (2 * A);
+			if(t1 < 0){
+				if(t2 >= 0){
+					t = t2;
+				}
+			}else{
+				if(t2 < 0 || t1 < t2){
+					t = t1;
+				}else{
+					t = t2;
+				}
+			}
+		}
+		if(t < 0){
+			return null;
+		}
+		Point2D.Double np = new Point2D.Double(position.getX() + t * vx, position.getY() + t * vy);
+		return np;
+	}
 }
