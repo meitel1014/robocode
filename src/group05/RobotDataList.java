@@ -11,23 +11,16 @@ import java.util.List;;
  *
  */
 public class RobotDataList{
-	private static RobotDataList data = new RobotDataList();// シングルトン
 	private List<RobotData> datalist = Collections.synchronizedList(new ArrayList<RobotData>());;
 	private int walls = 3;
-
-	private RobotDataList(){}
-
-	public static RobotDataList getInstance(){
-		return data;
-	}
+	private boolean isDroidDead=false;
 
 	/**
 	 * 自分の名前を受け取りそれに対する{@link RobotData}を作成する．
 	 *
 	 * @param name
-	 * @return
 	 */
-	public void setMe(String name){
+	public RobotDataList(String name){
 		datalist.add(new RobotData(name, true));
 	}
 
@@ -57,24 +50,24 @@ public class RobotDataList{
 	 * @return ターゲットにする敵ロボットの{@link RobotData}
 	 */
 	public RobotData getTarget(String myName){
-		if(myName.contains("Leader")) {
-			if(walls>0) {
+		if(myName.contains("Leader")){
+			if(walls > 0){
 				for(RobotData data: datalist){
 					if(data.getName().contains("Walls")){
-						if(data.isLeader) {
+						if(data.isLeader){
 							return data;
 						}
 					}
 				}
-			}else {
+			}else{
 
 			}
-		}else {
-			if(walls>1) {
+		}else{
+			if(walls > 1){
 				for(RobotData data: datalist){
 					if(data.getName().contains("Walls")){
-						if(!data.isLeader&&!data.isTargetted) {
-							data.isTargetted=true;
+						if(!data.isLeader && !data.isTargetted){
+							data.isTargetted = true;
 							return data;
 						}
 					}
@@ -84,19 +77,23 @@ public class RobotDataList{
 		return null;
 	}
 
+	public int size() {
+		return datalist.size();
+	}
+
 	/**
 	 * 全ての敵ロボットの{@link RobotData}を持つListを返す．
 	 *
 	 * @return 全ての敵ロボットの{@link RobotData}を持つList
 	 */
 	public List<RobotData> getEnemies(){
-		List<RobotData> ret = Collections.synchronizedList(new ArrayList<RobotData>());
+		List<RobotData> enemies = Collections.synchronizedList(new ArrayList<RobotData>());
 		for(RobotData data: datalist){
 			if(!data.isTeammate()){
-				ret.add(data);
+				enemies.add(data);
 			}
 		}
-		return ret;
+		return enemies;
 	}
 
 	/**
@@ -109,26 +106,20 @@ public class RobotDataList{
 	}
 
 	/**
-	 * 全てのロボットの防御ポイントの合計を返す．
-	 *
-	 * @return 全てのロボットの防御ポイントの合計
-	 */
-	public double getTotalDefendPoint(){
-		double ret = 0;
-		for(int i = 0; i < this.getAll().size(); i++){
-			ret += datalist.get(i).getDefendPoint();
-		}
-
-		return ret;
-	}
-
-	/**
 	 * 生存しているWallsの数を返す．
 	 *
 	 * @return 生存しているWallsの数
 	 */
 	public int walls(){
 		return walls;
+	}
+
+	public boolean isDroidDead() {
+		return isDroidDead;
+	}
+
+	public boolean isReady() {
+		return datalist.size()==9;
 	}
 
 	/**
@@ -145,6 +136,10 @@ public class RobotDataList{
 			if(name.equals(datalist.get(i).getName())){
 				datalist.remove(i);
 			}
+		}
+
+		if(name.contains("G05_Sub")) {
+			isDroidDead=true;
 		}
 	}
 }

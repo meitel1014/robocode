@@ -10,12 +10,10 @@ import java.awt.geom.Point2D;
  */
 public class RobotData{
 	private String name;
-	private int attackPointByDistance = 0, attackPointByDirection = 0;
-	private int defendPointByBullet, defendPointByDirection = 0, defendPointByHitByRobot = 0;
 	private double energy = -1;
 	private Point2D.Double position;
 	private double velocity = 0;
-	private double bearing = 0;
+	private double heading = 0;
 	private long time = 0;
 	public boolean isLeader, isDroid,isTargetted;
 	private boolean isTeammate;
@@ -29,12 +27,6 @@ public class RobotData{
 	public RobotData(String name, boolean isTeammate){
 		this.name = name;
 		this.isTeammate = isTeammate;
-		if(isTeammate){
-			defendPointByBullet = 2;
-		}else{
-			defendPointByBullet = 0;
-		}
-		defendPointByDirection = 0;
 		position = new Point2D.Double();
 		// グループ機体の場合
 		if(!isTeammate){
@@ -46,74 +38,8 @@ public class RobotData{
 		}
 	}
 
-	/**
-	 * このロボットの攻撃ポイントを返す．
-	 *
-	 * @return このロボットの攻撃ポイント
-	 */
-	public int getAttackPoint(){
-		return attackPointByDirection + attackPointByDistance;
-	}
-
-	/**
-	 * このロボットの距離攻撃ポイントをpointにする．
-	 *
-	 * @param point
-	 */
-	public void setDistanceAttackPoint(int point){
-		attackPointByDistance = point;
-	}
-
-	/**
-	 * このロボットの方向攻撃ポイントをpointにする．
-	 *
-	 * @param point
-	 */
-	public void setDirectionAttackPoint(int point){
-		attackPointByDirection = point;
-	}
-
-	/**
-	 * このロボットの防御ポイントを返す．
-	 *
-	 * @return
-	 */
-	public int getDefendPoint(){
-		return defendPointByBullet + defendPointByDirection + defendPointByHitByRobot;
-	}
-
-	/**
-	 * このロボットの弾防御ポイントにpointを加える．
-	 *
-	 * @param point
-	 */
-	public void addBulletDefendpoint(int point){
-		defendPointByBullet += point;
-	}
-
-	/**
-	 * このロボットの方向防御ポイントをpointにする．
-	 *
-	 * @param point
-	 */
-	public void setDirectionDefendpoint(int point){
-		defendPointByDirection = point;
-	}
-
-	/**
-	 * このロボットの弾防御ポイントからpointを引く． 防御ポイントが負になる場合は0にする．
-	 *
-	 * @param point
-	 */
-	public void subDefendpoint(int point){
-		defendPointByBullet -= point;
-		if(defendPointByBullet < 0){
-			defendPointByBullet = 0;
-		}
-	}
-
-	public void addDefendPointByHitByRobot(int point){
-		defendPointByHitByRobot += point;
+	public double getGravity() {
+		return 2.0;
 	}
 
 	/**
@@ -239,8 +165,8 @@ public class RobotData{
 	 *
 	 * @param mradians
 	 */
-	public void setmBearing(double mRadians){
-		this.bearing = mRadians;
+	public void setmHeading(double mRadians){
+		this.heading = mRadians;
 	}
 
 	/**
@@ -248,8 +174,8 @@ public class RobotData{
 	 *
 	 * @param radians
 	 */
-	public void setrBearing(double rRadians){
-		this.bearing = G05.tomAngle(rRadians);
+	public void setrHeading(double rRadians){
+		this.heading = G05.tomAngle(rRadians);
 	}
 
 	/**
@@ -257,8 +183,8 @@ public class RobotData{
 	 *
 	 * @return ロボットの向いている数学絶対角度
 	 */
-	public double getmBearing(){
-		return bearing;
+	public double getmHeading(){
+		return heading;
 	}
 
 	/**
@@ -266,8 +192,8 @@ public class RobotData{
 	 *
 	 * @return ロボットの向いているRobocode絶対角度
 	 */
-	public double getrBearing(){
-		return G05.torAngle(bearing);
+	public double getrHeading(){
+		return G05.torAngle(heading);
 	}
 
 	/**
@@ -290,7 +216,7 @@ public class RobotData{
 	 *
 	 * @return
 	 */
-	public Point2D.Double getNextPosition(double x0, double y0, double power, double rHeading){
+	public Point2D.Double getNextPosition(double x0, double y0, double power,double rHeading){
 		double dx = position.getX() - x0;
 		double dy = position.getY() - y0;
 		double vx = velocity * Math.sin(Math.toRadians(rHeading));
@@ -319,7 +245,6 @@ public class RobotData{
 		if(t < 0){
 			return null;
 		}
-		Point2D.Double np = new Point2D.Double(position.getX() + t * vx, position.getY() + t * vy);
-		return np;
+		return new Point2D.Double(position.getX() + t * vx, position.getY() + t * vy);
 	}
 }
