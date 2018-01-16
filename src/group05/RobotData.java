@@ -11,7 +11,7 @@ import java.awt.geom.Point2D;
 public class RobotData{
 	private String name;
 	private double energy = -1;
-	private Point2D.Double position;
+	private Point2D.Double position=new Point2D.Double(500,400);
 	private double velocity = 0;
 	private double heading = 0;
 	private long time = 0;

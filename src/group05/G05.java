@@ -42,8 +42,8 @@ abstract public class G05 extends TeamRobot{
 			recordMe();
 			setTurnRadarRight(10000000);
 			RobotData target = data.getTarget(this.getName());
-			System.out.println("target:" + target.getName());
 			if(target != null && fired == true){
+				System.out.println("target:" + target.getName());
 				double distance = target.getDistance(getX(), getY());// ターゲットからの距離
 				if(distance <= 300){
 					power = 3;
