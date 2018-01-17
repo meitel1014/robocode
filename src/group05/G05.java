@@ -15,7 +15,7 @@ abstract public class G05 extends TeamRobot{
 	double power = 0;
 
 	enum Mode{
-		WALL, RAMFIRE
+		WALL, RAMFIRE, EVADE
 	};
 
 	abstract public Mode getMode();
@@ -54,7 +54,7 @@ abstract public class G05 extends TeamRobot{
 				}
 
 				double rTurn = getGunHeadingRadians() +
-						getAngleBtwRobos(target.getNextPosition(getX(), getY(), power, getHeading())) - Math.PI / 2;
+						getAngleBtwRobos(target.getNextPosition(getX(), getY(), power)) - Math.PI / 2;
 				setTurnGunLeftRadians(rTurn);
 				fired = false;
 			}
@@ -64,6 +64,7 @@ abstract public class G05 extends TeamRobot{
 				fired = true;
 			}
 			// 移動
+			//TODO 追いつけないので反重力に統一
 			if(getMode() == Mode.WALL){
 				chestToWall(target);
 			}else{
@@ -81,7 +82,7 @@ abstract public class G05 extends TeamRobot{
 		me.setVelocity(this.getVelocity());
 		me.setrHeading(this.getHeadingRadians());
 		try{
-			broadcastMessage(new MyData(getName(),getX(), getY(), getEnergy(), getVelocity(), getHeadingRadians()));
+			broadcastMessage(new MyData(getName(), getX(), getY(), getEnergy(), getVelocity(), getHeadingRadians()));
 		}catch(IOException e){
 			e.printStackTrace();
 		}
@@ -94,7 +95,7 @@ abstract public class G05 extends TeamRobot{
 		robo.setVelocity(e.getVelocity());
 		robo.setrHeading(e.getBearingRadians() + this.getHeadingRadians());
 		try{
-			broadcastMessage(new MyData(robo.getName(),robo.getPosition().getX(), robo.getPosition().getY(),
+			broadcastMessage(new MyData(robo.getName(), robo.getPosition().getX(), robo.getPosition().getY(),
 					robo.getEnergy(), robo.getVelocity(), robo.getrHeading()));
 		}catch(IOException ex){
 			ex.printStackTrace();
@@ -148,7 +149,7 @@ abstract public class G05 extends TeamRobot{
 			RobotData robo = data.get(e.getName());
 			robo.setEnergy(e.getEnergy());
 			robo.setrHeading(e.getBearingRadians() + data.get(event.getSender()).getrHeading());
-		}else if(m instanceof MyData) {
+		}else if(m instanceof MyData){
 			MyData sig = (MyData)m;
 			RobotData robo = data.get(sig.getName());
 			robo.setPosition(sig.getX(), sig.getY());
@@ -166,9 +167,9 @@ abstract public class G05 extends TeamRobot{
 		forcex = 0;
 		forcey = 0;
 		// ウォールを倒した後に分岐する
-		if(getMode() == Mode.WALL){
+		if(getMode() == Mode.WALL || getMode() == Mode.EVADE){
 			/*
-			 * 敵ロボットとの反重力
+			 * ロボットとの反重力
 			 */
 			for(RobotData info: data.getAll()){
 				force = getForce(info.getGravity(), info.getPosition());
@@ -186,11 +187,7 @@ abstract public class G05 extends TeamRobot{
 			move(forcex, forcey);
 		}else{
 			// どの戦車を狙うかを決めている。残り体力の最も少ない戦車を攻撃する。
-			RobotData target = null;
-			for(RobotData info: data.getAll()){
-				if(info.getEnergy() < target.getEnergy() || target == null)
-					target = info;
-			}
+			RobotData target = data.getTarget(this.getName());
 
 			force = getForce(target.getGravity(), target.getPosition());
 			forcex += force.getX();
@@ -213,6 +210,7 @@ abstract public class G05 extends TeamRobot{
 		return Math.atan2(enemy.getY() - getY(), enemy.getX() - getX());
 	}
 
+	//TODO 射撃を妨害しない
 	/*
 	 * (x,y)の分だけ移動する
 	 */
@@ -275,12 +273,17 @@ abstract public class G05 extends TeamRobot{
 	 * 受け取ったロボット(wall)を追跡する
 	 */
 	protected void chestToWall(RobotData chest){
+		// ターゲットを決定できないまま呼び出された時の対処
+		if(chest == null){
+			getDirection();
+			return;
+		}
+
 		int keepDistance = 25;// wallと保つ距離(移動が間に合わないのであまり関係ない?)
 		int range = 40;// wallの位置を分けるときの幅
 		Point2D.Double wallPosition = chest.getPosition();
 		out.println(wallPosition);
-		Point2D.Double chestPosition;// 追跡のために移動したい座標
-		chestPosition = new Point2D.Double();
+		Point2D.Double chestPosition = new Point2D.Double();// 追跡のために移動したい座標
 		/*
 		 * wallが角にいるときに玉を回避する動きをする(移動が遅すぎて間に合わない)
 		 */

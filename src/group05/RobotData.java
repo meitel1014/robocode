@@ -11,11 +11,11 @@ import java.awt.geom.Point2D;
 public class RobotData{
 	private String name;
 	private double energy = -1;
-	private Point2D.Double position=new Point2D.Double(500,400);
+	private Point2D.Double position;
 	private double velocity = 0;
 	private double heading = 0;
 	private long time = 0;
-	public boolean isLeader, isDroid,isTargetted;
+	public boolean isLeader, isDroid;
 	private boolean isTeammate;
 
 	/**
@@ -27,7 +27,7 @@ public class RobotData{
 	public RobotData(String name, boolean isTeammate){
 		this.name = name;
 		this.isTeammate = isTeammate;
-		position = new Point2D.Double();
+		position=new Point2D.Double(500,400);
 		// グループ機体の場合
 		if(!isTeammate){
 			if(name.contains("Leader")){
@@ -207,20 +207,19 @@ public class RobotData{
 
 	/**
 	 * 弾を発射する機体を基準とした相手の次の座標を返す．
+	 * http://www.wakayama-u.ac.jp/~fukuyasu/dis1-2006/robocode/
 	 *
 	 * @param x0(弾を発射する機体の位置)
 	 * @param y0(弾を発射する機体の位置)
 	 * @param power(弾の強さ)
-	 * @param rHeading
-	 *            相手機体の向き(robocode絶対角度)
 	 *
 	 * @return
 	 */
-	public Point2D.Double getNextPosition(double x0, double y0, double power,double rHeading){
+	public Point2D.Double getNextPosition(double x0, double y0, double power){
 		double dx = position.getX() - x0;
 		double dy = position.getY() - y0;
-		double vx = velocity * Math.sin(Math.toRadians(rHeading));
-		double vy = velocity * Math.cos(Math.toRadians(rHeading));
+		double vx = velocity * Math.sin(Math.toRadians(getrHeading()));
+		double vy = velocity * Math.cos(Math.toRadians(getrHeading()));
 		double vp = 20 - 3 * power;
 		double A = (vx * vx) + (vy * vy) - (vp * vp);
 		double B = (2 * vx * dx) + (2 * vy * dy);
