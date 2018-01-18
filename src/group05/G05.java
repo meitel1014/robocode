@@ -13,6 +13,9 @@ abstract public class G05 extends TeamRobot{
 	final int wallpoint = 2; // 壁の重力
 	boolean fired = true;// セットされた射撃が実行された後か
 	double power = 0;
+	int movSign = 1;
+	double rturnRadians = 0;
+	boolean turnCompleted = true, moveCompleted = false;
 
 	enum Mode{
 		WALL, RAMFIRE, EVADE
@@ -31,18 +34,18 @@ abstract public class G05 extends TeamRobot{
 		data = new RobotDataList(getName());
 
 		while(!data.isReady()){
-			setTurnRadarRight(360);
-			System.out.println(getName() + ":wait");
-			System.out.println(getName() + ":size:" + data.size());
+			setTurnRadarRight(400);
 			execute();
 		}
-		System.out.println(getName() + ":ready");
 
 		while(true){
 			recordMe();
 			setTurnRadarRight(10000000);
 			RobotData target = data.getTarget(this.getName());
-			if(target != null && fired == true){
+			double rTurn = getrAngleBtwRobos(target.getNextPosition(getX(), getY(), power))
+					- getGunHeadingRadians();
+			turnGun(rTurn);
+			if(target != null && fired == true && getGunHeat() == 0){
 				System.out.println("target:" + target.getName());
 				double distance = target.getDistance(getX(), getY());// ターゲットからの距離
 				if(distance <= 300){
@@ -52,27 +55,33 @@ abstract public class G05 extends TeamRobot{
 				}else{
 					power = 1;
 				}
-
-				double rTurn = getGunHeadingRadians() +
-						getAngleBtwRobos(target.getNextPosition(getX(), getY(), power)) - Math.PI / 2;
-				setTurnGunLeftRadians(rTurn);
 				fired = false;
 			}
-			if(getGunHeat() == 0 && power > 0.1 && Math.abs(getGunTurnRemaining()) < 10){
+			if(power > 0.1 && Math.abs(getGunTurnRemaining()) < 10){
 				fire(power);
 				power = 0;
 				fired = true;
 			}
 			// 移動
-			//TODO 追いつけないので反重力に統一
-			if(getMode() == Mode.WALL){
-				chestToWall(target);
-			}else{
-				getDirection();
-			}
+			getDirection();
 
 			execute();
 		}
+	}
+
+	// rTurnRadians右回転した先に最短で大砲を回転する
+	public void turnGun(double rTurnRadians){
+		// rTurnRadiansを-piからpiの間にする
+		while(rTurnRadians > Math.PI){
+			rTurnRadians -= 2 * Math.PI;
+		}
+		while(rTurnRadians < -Math.PI){
+			rTurnRadians += 2 * Math.PI;
+		}
+
+		setTurnGunRightRadians(rTurnRadians);
+		execute();
+
 	}
 
 	public void recordMe(){
@@ -160,18 +169,14 @@ abstract public class G05 extends TeamRobot{
 	}
 
 	protected void getDirection(){
-		double myx = this.getX();// 自ロボットのｘ座標
-		double myy = this.getY();// 自ロボットのｙ座標
-		double forcex, forcey;// 各ロボットから受けるｘ、ｙ軸方向の力
+		double forcex = 0, forcey = 0;// 各ロボットから受けるｘ、ｙ軸方向の力
 		Point2D.Double force;
-		forcex = 0;
-		forcey = 0;
 		// ウォールを倒した後に分岐する
 		if(getMode() == Mode.WALL || getMode() == Mode.EVADE){
 			/*
 			 * ロボットとの反重力
 			 */
-			for(RobotData info: data.getAll()){
+			for(RobotData info: data.getAll(getName())){
 				force = getForce(info.getGravity(), info.getPosition());
 				forcex += force.getX();
 				forcey += force.getY();
@@ -180,11 +185,21 @@ abstract public class G05 extends TeamRobot{
 			/*
 			 * 壁との反重力
 			 */
-			forcex += wallpoint / Math.pow(myx, 1.5);
-			forcex -= wallpoint / Math.pow(getBattleFieldWidth() - myx, 1.5);
-			forcey += wallpoint / Math.pow(myy, 1.5);
-			forcey -= wallpoint / Math.pow(getBattleFieldHeight() - myy, 1.5);
-			move(forcex, forcey);
+			forcex += wallpoint / Math.pow(getX(), 1.5);
+			forcex -= wallpoint / Math.pow(getBattleFieldWidth() - getX(), 1.5);
+			forcey += wallpoint / Math.pow(getY(), 1.5);
+			forcey -= wallpoint / Math.pow(getBattleFieldHeight() - getY(), 1.5);
+			if(getDistanceRemaining() == 0 && turnCompleted){
+				moveCompleted = true;
+				getMove(forcex, forcey);
+				setTurnRightRadians(rturnRadians);
+				turnCompleted = false;
+			}
+			if(getTurnRemainingRadians() == 0 && moveCompleted){
+				turnCompleted = true;
+				setAhead(dist * movSign);
+				moveCompleted = false;
+			}
 		}else{
 			// どの戦車を狙うかを決めている。残り体力の最も少ない戦車を攻撃する。
 			RobotData target = data.getTarget(this.getName());
@@ -200,43 +215,45 @@ abstract public class G05 extends TeamRobot{
 		double distance = Math.sqrt(Math.pow((getX() - position.getX()), 2) + Math.pow((getY() -
 				position.getY()), 2));
 		double power = -point / Math.pow(distance, 2);
-		double forcex = power * (Math.cos(getAngleBtwRobos(position)));
-		double forcey = power * (Math.sin(getAngleBtwRobos(position)));
+		double forcex = power * (Math.cos(getmAngleBtwRobos(position)));
+		double forcey = power * (Math.sin(getmAngleBtwRobos(position)));
 		return new Point2D.Double(forcex, forcey);
 	}
 
-	// 自分から見たenemyの角度を計算する
-	public double getAngleBtwRobos(Point2D.Double enemy){
+	// 自分から見たenemyの数学角度を計算する
+	public double getmAngleBtwRobos(Point2D.Double enemy){
 		return Math.atan2(enemy.getY() - getY(), enemy.getX() - getX());
 	}
 
-	//TODO 射撃を妨害しない
-	/*
-	 * (x,y)の分だけ移動する
-	 */
-	private void move(double x, double y){
-		double mDirection = Math.atan2(y, x);
-		int rev = turnTo(mDirection);
-		ahead(dist * rev);
+	// 自分から見たenemyのRobocode角度を計算する
+	public double getrAngleBtwRobos(Point2D.Double enemy){
+		return torAngle(getmAngleBtwRobos(enemy));
 	}
 
 	/*
-	 * mAngleの方向に最短で回転する
+	 * (x,y)の分だけ移動させる
+	 */
+	private void getMove(double x, double y){
+		double mDirection = Math.atan2(y, x);
+		movSign = turnTo(mDirection);
+	}
+
+	/*
+	 * mAngleの方向に最短で回転させ前進か後進かを返す
 	 */
 	private int turnTo(double mAngle){
-		double rDirection;
 		int sign;
-		rDirection = tomAngle(mAngle) - getHeadingRadians();
-		if(rDirection > Math.PI / 2){
-			rDirection -= Math.PI;
+		rturnRadians = tomAngle(mAngle) - getHeadingRadians();
+		if(rturnRadians > Math.PI / 2){
+			rturnRadians -= Math.PI;
 			sign = -1;
-		}else if(rDirection < -Math.PI / 2){
-			rDirection += Math.PI;
+		}else if(rturnRadians < -Math.PI / 2){
+			rturnRadians += Math.PI;
 			sign = -1;
 		}else{
 			sign = 1;
 		}
-		turnRightRadians(rDirection);
+
 		return sign;
 	}
 
@@ -250,7 +267,7 @@ abstract public class G05 extends TeamRobot{
 	}
 
 	/*
-	 * mAngleの方向に最短で回転する
+	 * mAngleの方向に最短で回転し前進か後進かを返す
 	 */
 	private int turn(double mAngle){
 		double rDirection;
@@ -282,23 +299,22 @@ abstract public class G05 extends TeamRobot{
 		int keepDistance = 25;// wallと保つ距離(移動が間に合わないのであまり関係ない?)
 		int range = 40;// wallの位置を分けるときの幅
 		Point2D.Double wallPosition = chest.getPosition();
-		out.println(wallPosition);
 		Point2D.Double chestPosition = new Point2D.Double();// 追跡のために移動したい座標
 		/*
 		 * wallが角にいるときに玉を回避する動きをする(移動が遅すぎて間に合わない)
 		 */
 		if((wallPosition.getX() <= range) && (wallPosition.getY() <= range)){
-			move(0, 20);
+			getMove(0, 20);
 			out.println("左下");
 		}else if((wallPosition.getX() <= range) && (wallPosition.getY() >= (this.getBattleFieldHeight() - range))){
-			move(20, 0);
+			getMove(20, 0);
 			out.println("左上");
 		}else if((wallPosition.getX() >= (this.getBattleFieldWidth() - range))
 				&& (wallPosition.getY() >= (this.getBattleFieldHeight() - range))){
-			move(0, -20);
+			getMove(0, -20);
 			out.println("右上");
 		}else if((wallPosition.getX() >= (this.getBattleFieldWidth() - range)) && (wallPosition.getY() <= range)){
-			move(-20, 0);
+			getMove(-20, 0);
 			out.println("右下");
 		}
 		/*
@@ -319,7 +335,7 @@ abstract public class G05 extends TeamRobot{
 					wallPosition.getY() + keepDistance * Math.sin(Math.toRadians(-30)));
 		}
 		out.println("X:" + chestPosition.getX() + "Y:" + chestPosition.getY());
-		move(chestPosition.getX() - this.getX(), chestPosition.getY() - this.getY());
+		getMove(chestPosition.getX() - this.getX(), chestPosition.getY() - this.getY());
 	}
 
 	/*

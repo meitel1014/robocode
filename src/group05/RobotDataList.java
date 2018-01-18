@@ -190,12 +190,20 @@ public class RobotDataList{
 	}
 
 	/**
-	 * 全てのロボットの{@link RobotData}を持つListを返す．
+	 * 自分以外の全てのロボットの{@link RobotData}を持つListを返す．
 	 *
 	 * @return 全てのロボットの{@link RobotData}を持つList
 	 */
-	public List<RobotData> getAll(){
-		return datalist;
+	public List<RobotData> getAll(String myName){
+		List<RobotData> robots = Collections.synchronizedList(new ArrayList<RobotData>());
+
+		for(RobotData data:datalist) {
+			if(!data.getName().equals(myName)) {
+				robots.add(data);
+			}
+		}
+
+		return robots;
 	}
 
 	/**

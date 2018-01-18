@@ -39,7 +39,7 @@ public class RobotData{
 	}
 
 	public double getGravity() {
-		return 2.0;
+		return 2;
 	}
 
 	/**
@@ -205,6 +205,8 @@ public class RobotData{
 		return isTeammate;
 	}
 
+	//TODO tを受け取りt秒後の座標を返す
+	//G05に移してもよい?
 	/**
 	 * 弾を発射する機体を基準とした相手の次の座標を返す．
 	 * http://www.wakayama-u.ac.jp/~fukuyasu/dis1-2006/robocode/
@@ -218,8 +220,8 @@ public class RobotData{
 	public Point2D.Double getNextPosition(double x0, double y0, double power){
 		double dx = position.getX() - x0;
 		double dy = position.getY() - y0;
-		double vx = velocity * Math.sin(Math.toRadians(getrHeading()));
-		double vy = velocity * Math.cos(Math.toRadians(getrHeading()));
+		double vx = velocity * Math.sin(getrHeading());
+		double vy = velocity * Math.cos(getrHeading());
 		double vp = 20 - 3 * power;
 		double A = (vx * vx) + (vy * vy) - (vp * vp);
 		double B = (2 * vx * dx) + (2 * vy * dy);
