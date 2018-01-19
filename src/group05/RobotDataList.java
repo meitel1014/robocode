@@ -40,7 +40,11 @@ public class RobotDataList{
 		}
 
 		// 未登録の場合
-		RobotData newdata = new RobotData(name, false);
+		boolean isTeammate=false;
+		if(name.contains("G05")) {
+			isTeammate=true;
+		}
+		RobotData newdata = new RobotData(name, isTeammate);
 		datalist.add(newdata);
 		return newdata;
 	}
@@ -97,7 +101,7 @@ public class RobotDataList{
 			}
 		}
 
-		return null;
+		return getEnemies().get(0);
 	}
 
 	private RobotData getGroupTarget(String myName){
@@ -119,6 +123,10 @@ public class RobotDataList{
 	// 敵機が残り1機ならそれを，2機残っていれば体力の少ない子機を狙う
 	private RobotData targetGroupSub(){
 		List<RobotData> enemy = getEnemyGroup();
+		if(enemy.isEmpty()) {
+			return getEnemies().get(0);
+		}
+
 		if(enemy.size() == 1){
 			return enemy.get(0);
 		}
@@ -139,7 +147,39 @@ public class RobotDataList{
 		}else{
 			return enemy.get(1);
 		}
+	}
 
+	public RobotData targetAll() {
+		return getEnemies().get(0);
+	}
+
+	public RobotData getFriend(String myName) {
+		if(isDroidDead) {
+			if(myName.contains("Leader")){
+				for(RobotData robo:datalist) {
+					if(robo.getName().contains("Sub")) {
+						return robo;
+					}
+				}
+			}else {
+				for(RobotData robo:datalist) {
+					if(robo.getName().contains("Leader")) {
+						return robo;
+					}
+				}
+			}
+		}else {
+			for(RobotData robo:datalist) {
+				if(robo.getName().equals(myName)) {
+					continue;
+				}
+				if(robo.getName().contains("Sub")) {
+					return robo;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	public int size(){
@@ -169,6 +209,7 @@ public class RobotDataList{
 	public List<RobotData> getEnemyGroup(){
 		List<RobotData> enemies = Collections.synchronizedList(new ArrayList<RobotData>());
 		for(RobotData data: getEnemies()){
+			System.out.println("Enemy"+data.getName());
 			if(!data.isTeammate() && !data.getName().contains("Walls")){
 				enemies.add(data);
 			}

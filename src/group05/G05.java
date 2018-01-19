@@ -12,6 +12,7 @@ import robocode.MessageEvent;
 import robocode.RobotDeathEvent;
 import robocode.ScannedRobotEvent;
 import robocode.TeamRobot;
+import robocode.WinEvent;
 
 abstract public class G05 extends TeamRobot{
 	final int dist = 100; // 一度に移動する距離
@@ -114,7 +115,6 @@ abstract public class G05 extends TeamRobot{
 		try{
 			broadcastMessage(e);
 		}catch(IOException e1){
-			// TODO 自動生成された catch ブロック
 			e1.printStackTrace();
 		}
 		if(getMode() != Mode.RAMFIRE){
@@ -188,10 +188,10 @@ abstract public class G05 extends TeamRobot{
 			/*
 			 * 壁との反重力
 			 */
-			forcex += wallpoint / Math.pow(getX(), 1.5);
-			forcex -= wallpoint / Math.pow(getBattleFieldWidth() - getX(), 1.5);
-			forcey += wallpoint / Math.pow(getY(), 1.5);
-			forcey -= wallpoint / Math.pow(getBattleFieldHeight() - getY(), 1.5);
+			forcex += wallpoint / Math.pow(getX(), 2);
+			forcex -= wallpoint / Math.pow(getBattleFieldWidth() - getX(), 2);
+			forcey += wallpoint / Math.pow(getY(), 2);
+			forcey -= wallpoint / Math.pow(getBattleFieldHeight() - getY(), 2);
 			if(getDistanceRemaining() == 0 && turnCompleted){
 				moveCompleted = true;
 				getMove(forcex, forcey);
@@ -205,10 +205,17 @@ abstract public class G05 extends TeamRobot{
 			}
 		}else{
 			RobotData target = data.getTarget(this.getName());
-			System.out.println(getName()+":target:"+target.getName());
-			force = getForce(target.getGravity(), target.getPosition());
+			System.out.println(getName() + ":target:" + target.getName());
+			force = getForce(5*target.getGravity(), target.getPosition());
 			forcex -= force.getX();
 			forcey -= force.getY();
+			RobotData friend= data.getFriend(getName());
+			if(friend!=null) {
+				force = getForce(2, friend.getPosition());
+				forcex += force.getX();
+				forcey += force.getY();
+			}
+
 			attack(forcex, forcey);
 		}
 	}
@@ -239,8 +246,7 @@ abstract public class G05 extends TeamRobot{
 		double vx = robo.getVelocity() * Math.cos(robo.getmHeading()); // 相手のx方向の速度
 		double vy = robo.getVelocity() * Math.sin(robo.getmHeading()); // 相手のy方向の速度
 		double vp = 20 - 3 * getPower(robo.getDistance(getX(), getY())); // 弾速
-		double time = robo.getDistance(getX(), getY()) / vp + (getTime() - robo.getTime()); // time
-																							// tick後を予測
+		double time = robo.getDistance(getX(), getY()) / vp + (getTime() - robo.getTime());
 		double x = robo.getPosition().getX() + vx * time;
 		if(x < 0){
 			x = 0;
@@ -278,14 +284,14 @@ abstract public class G05 extends TeamRobot{
 	 * mAngleの方向に最短で回転させ前進か後進かを返す
 	 */
 	private int turnTo(double mAngle){
-		rturnRadians = normalize(tomAngle(mAngle) - getHeadingRadians());
-		if(rturnRadians > Math.PI / 2){//右に回転しすぎ
+		rturnRadians = normalize(torAngle(mAngle) - getHeadingRadians());
+		if(rturnRadians > Math.PI / 2){// 右に回転しすぎ
 			rturnRadians -= Math.PI;
 			return -1;
-		}else if(rturnRadians < - Math.PI / 2){//左に回転しすぎ
+		}else if(rturnRadians < -Math.PI / 2){// 左に回転しすぎ
 			rturnRadians += Math.PI;
 			return -1;
-		}else {
+		}else{
 			return 1;
 		}
 	}
@@ -303,18 +309,17 @@ abstract public class G05 extends TeamRobot{
 	 * mAngleの方向に最短で回転し前進か後進かを返す
 	 */
 	private int turn(double mAngle){
-		double rDirection = normalize(tomAngle(mAngle) - getHeadingRadians());
+		double rDirection = normalize(torAngle(mAngle) - getHeadingRadians());// 回転する量
 		int ret;
-		if(rDirection > Math.PI / 2){//右に回転しすぎ
+		if(rDirection > Math.PI / 2){// 右に回転しすぎ
 			rDirection -= Math.PI;
-			ret= -1;
-		}else if(rDirection < - Math.PI / 2){//左に回転しすぎ
+			ret = -1;
+		}else if(rDirection < -Math.PI / 2){// 左に回転しすぎ
 			rDirection += Math.PI;
-			ret= -1;
-		}else {
-			ret= 1;
+			ret = -1;
+		}else{
+			ret = 1;
 		}
-
 		setTurnRight(rDirection);
 		return ret;
 	}
@@ -342,5 +347,10 @@ abstract public class G05 extends TeamRobot{
 			radian += 2 * Math.PI;
 		}
 		return radian;
+	}
+
+	public void onWin(WinEvent e){
+		clearAllEvents();
+		turnGunRight(1000);
 	}
 }
