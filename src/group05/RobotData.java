@@ -27,7 +27,7 @@ public class RobotData{
 	public RobotData(String name, boolean isTeammate){
 		this.name = name;
 		this.isTeammate = isTeammate;
-		position=new Point2D.Double(500,400);
+		position = new Point2D.Double(500, 400);
 		// グループ機体の場合
 		if(!isTeammate){
 			if(name.contains("Leader")){
@@ -38,7 +38,7 @@ public class RobotData{
 		}
 	}
 
-	public double getGravity() {
+	public double getGravity(){
 		return 2;
 	}
 
@@ -116,14 +116,14 @@ public class RobotData{
 	 */
 	public void setEnergy(double energy){
 		if(this.energy == -1){
-			if(name.contains("Walls")) {
+			if(name.contains("Walls")){
 				if(energy > 110){
 					isLeader = true;
 				}else{
 					isLeader = false;
 				}
-			}else {
-				if(!isLeader&&energy > 110){
+			}else{
+				if(!isLeader && energy > 110){
 					isDroid = true;
 				}else{
 					isDroid = false;
@@ -205,8 +205,8 @@ public class RobotData{
 		return isTeammate;
 	}
 
-	//TODO tを受け取りt秒後の座標を返す
-	//G05に移してもよい?
+	// TODO tを受け取りt秒後の座標を返す
+	// G05に移してもよい?
 	/**
 	 * 弾を発射する機体を基準とした相手の次の座標を返す．
 	 * http://www.wakayama-u.ac.jp/~fukuyasu/dis1-2006/robocode/
@@ -214,14 +214,17 @@ public class RobotData{
 	 * @param x0(弾を発射する機体の位置)
 	 * @param y0(弾を発射する機体の位置)
 	 * @param power(弾の強さ)
+	 * @param time(現在時刻)
 	 *
 	 * @return
 	 */
-	public Point2D.Double getNextPosition(double x0, double y0, double power){
-		double dx = position.getX() - x0;
-		double dy = position.getY() - y0;
-		double vx = velocity * Math.sin(getrHeading());
-		double vy = velocity * Math.cos(getrHeading());
+	public Point2D.Double getNextPosition(double x0, double y0, double power, double time){
+		double vx = velocity * Math.cos(getmHeading());
+		double vy = velocity * Math.sin(getmHeading());
+		double x = position.getX() + (time - this.time) * vx;
+		double y = position.getY() + (time - this.time) * vy;
+		double dx = x - x0;
+		double dy = y - y0;
 		double vp = 20 - 3 * power;
 		double A = (vx * vx) + (vy * vy) - (vp * vp);
 		double B = (2 * vx * dx) + (2 * vy * dy);
@@ -242,10 +245,25 @@ public class RobotData{
 					t = t2;
 				}
 			}
-		}
-		if(t < 0){
+		}else{
 			return null;
 		}
-		return new Point2D.Double(position.getX() + t * vx, position.getY() + t * vy);
+
+		double retx = x + t * vx;
+		double rety = y + t * vy;
+
+		if(retx < 0){
+			retx = 0;
+		}else if(retx > 1000){
+			retx = 1000;
+		}
+
+		if(rety < 0){
+			rety = 0;
+		}else if(rety > 800){
+			rety = 800;
+		}
+
+		return new Point2D.Double(retx, rety);
 	}
 }
