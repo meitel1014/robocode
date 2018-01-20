@@ -2,27 +2,19 @@ package group05;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 
-import robocode.HitByBulletEvent;
-import robocode.HitRobotEvent;
-import robocode.HitWallEvent;
-import robocode.MessageEvent;
-import robocode.RobotDeathEvent;
-import robocode.ScannedRobotEvent;
-import robocode.TeamRobot;
-import robocode.WinEvent;
+import robocode.*;
 
 abstract public class G05 extends TeamRobot{
 	final int dist = 100; // 一度に移動する距離
 	RobotDataList data;
 	final int wallpoint = 2; // 壁の重力
-	boolean fired = true;// セットされた射撃が実行された後か
-	double power = 0;
+
 	int movSign = 1;
 	double rturnRadians = 0;
 	boolean turnCompleted = true, moveCompleted = false;
+	boolean lost = false;
 
 	enum Mode{
 		WALL, RAMFIRE, EVADE
@@ -43,6 +35,31 @@ abstract public class G05 extends TeamRobot{
 			setTurnRadarRight(400);
 			execute();
 		}
+
+		if(getRoundNum() == 0){
+			try(PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(getDataFile(getName()+"result"))))){
+				writer.println("lose");
+			}catch(IOException e){}
+		}else{
+			boolean win=false;
+			try(BufferedReader reader = new BufferedReader(new FileReader(getDataFile(getName()+"result")))){
+				String line = reader.readLine();
+				if(line.equals("win")){
+					win=true;
+				}
+			}catch(FileNotFoundException e){}catch(IOException e){}
+			for(String name:getTeammates()) {
+				try(BufferedReader reader = new BufferedReader(new FileReader(getDataFile(name+"result")))){
+					String line = reader.readLine();
+					if(line.equals("win")){
+						win=true;
+					}
+				}catch(FileNotFoundException e){}catch(IOException e){}
+			}
+			lost=!win;
+		}
+
+		double power = 0;
 		while(true){
 			recordMe();
 			setTurnRadarRight(10000000);
@@ -58,7 +75,7 @@ abstract public class G05 extends TeamRobot{
 					fire(power);
 				}
 			}
-			// 移動
+
 			getDirection();
 			execute();
 		}
@@ -206,11 +223,11 @@ abstract public class G05 extends TeamRobot{
 		}else{
 			RobotData target = data.getTarget(this.getName());
 			System.out.println(getName() + ":target:" + target.getName());
-			force = getForce(5*target.getGravity(), target.getPosition());
+			force = getForce(5 * target.getGravity(), target.getPosition());
 			forcex -= force.getX();
 			forcey -= force.getY();
-			RobotData friend= data.getFriend(getName());
-			if(friend!=null) {
+			RobotData friend = data.getFriend(getName());
+			if(friend != null){
 				force = getForce(2, friend.getPosition());
 				forcex += force.getX();
 				forcey += force.getY();
@@ -320,7 +337,13 @@ abstract public class G05 extends TeamRobot{
 		}else{
 			ret = 1;
 		}
-		setTurnRight(rDirection);
+
+		// バグ移動や線形予測が通用しなかったら突撃
+		if(lost){
+			setTurnRightRadians(rDirection);
+		}else{
+			setTurnRight(rDirection);
+		}
 		return ret;
 	}
 
@@ -349,8 +372,15 @@ abstract public class G05 extends TeamRobot{
 		return radian;
 	}
 
-	public void onWin(WinEvent e){
+	public void onWin(WinEvent win){
 		clearAllEvents();
+		if(getRoundNum() == 0){
+			try(PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(getDataFile(getName()+"result"))))){
+				writer.println("win");
+			}catch(IOException e){
+
+			}
+		}
 		turnGunRight(1000);
 	}
 }
