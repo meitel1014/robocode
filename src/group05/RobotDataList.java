@@ -13,6 +13,7 @@ import java.util.List;;
 public class RobotDataList{
 	private List<RobotData> datalist = Collections.synchronizedList(new ArrayList<RobotData>());;
 	private int walls = 3;
+	private boolean isLeaderDead = false;
 	private boolean isDroidDead = false;
 	private int hasDroid = -1;
 
@@ -38,11 +39,10 @@ public class RobotDataList{
 				return data;
 			}
 		}
-
 		// 未登録の場合
-		boolean isTeammate=false;
-		if(name.contains("G05")) {
-			isTeammate=true;
+		boolean isTeammate = false;
+		if(name.contains("G05")){
+			isTeammate = true;
 		}
 		RobotData newdata = new RobotData(name, isTeammate);
 		datalist.add(newdata);
@@ -62,7 +62,7 @@ public class RobotDataList{
 				return getGroupTarget(myName);
 			}
 		}else{
-			if(walls > 1){
+			if(walls > 1 && !isLeaderDead){
 				return getWallTarget(myName);
 			}else{
 				return getGroupTarget(myName);
@@ -100,7 +100,6 @@ public class RobotDataList{
 				}
 			}
 		}
-
 		return getEnemies().get(0);
 	}
 
@@ -116,32 +115,27 @@ public class RobotDataList{
 				}
 			}
 		}
-
 		return targetGroupSub();
 	}
 
 	// 敵機が残り1機ならそれを，2機残っていれば体力の少ない子機を狙う
 	private RobotData targetGroupSub(){
 		List<RobotData> enemy = getEnemyGroup();
-		if(enemy.isEmpty()) {
+		if(enemy.isEmpty()){
 			return getEnemies().get(0);
 		}
-
 		if(enemy.size() == 1){
 			return enemy.get(0);
 		}
-
 		for(int i = 0; i < enemy.size(); i++){
 			if(enemy.get(i).isLeader){
 				enemy.remove(i);
 				break;
 			}
 		}
-
 		if(enemy.size() == 1){
 			return enemy.get(0);
 		}
-
 		if(enemy.get(0).getEnergy() < enemy.get(1).getEnergy()){
 			return enemy.get(0);
 		}else{
@@ -149,37 +143,40 @@ public class RobotDataList{
 		}
 	}
 
-	public RobotData targetAll() {
+	public RobotData targetAll(){
 		return getEnemies().get(0);
 	}
 
-	public RobotData getFriend(String myName) {
-		if(isDroidDead) {
+	public RobotData getFriend(String myName){
+		if(isDroidDead){
 			if(myName.contains("Leader")){
-				for(RobotData robo:datalist) {
-					if(robo.getName().contains("Sub")) {
+				for(RobotData robo: datalist){
+					if(robo.getName().contains("Sub")){
 						return robo;
 					}
 				}
-			}else {
-				for(RobotData robo:datalist) {
-					if(robo.getName().contains("Leader")) {
+			}else{
+				for(RobotData robo: datalist){
+					if(robo.getName().contains("Leader")){
 						return robo;
 					}
 				}
 			}
-		}else {
-			for(RobotData robo:datalist) {
-				if(robo.getName().equals(myName)) {
+		}else{
+			for(RobotData robo: datalist){
+				if(robo.getName().equals(myName)){
 					continue;
 				}
-				if(robo.getName().contains("Sub")) {
+				if(robo.getName().contains("Sub")){
 					return robo;
 				}
 			}
 		}
-
 		return null;
+	}
+
+	public boolean isFinalize(){
+		return getEnemyGroup().isEmpty() && walls > 0;
 	}
 
 	public int size(){
@@ -209,7 +206,6 @@ public class RobotDataList{
 	public List<RobotData> getEnemyGroup(){
 		List<RobotData> enemies = Collections.synchronizedList(new ArrayList<RobotData>());
 		for(RobotData data: getEnemies()){
-			System.out.println("Enemy"+data.getName());
 			if(!data.isTeammate() && !data.getName().contains("Walls")){
 				enemies.add(data);
 			}
@@ -237,13 +233,11 @@ public class RobotDataList{
 	 */
 	public List<RobotData> getAll(String myName){
 		List<RobotData> robots = Collections.synchronizedList(new ArrayList<RobotData>());
-
-		for(RobotData data:datalist) {
-			if(!data.getName().equals(myName)) {
+		for(RobotData data: datalist){
+			if(!data.getName().equals(myName)){
 				robots.add(data);
 			}
 		}
-
 		return robots;
 	}
 
@@ -275,7 +269,6 @@ public class RobotDataList{
 					return true;
 				}
 			}
-
 			hasDroid = 0;
 			return false;
 		}
@@ -291,15 +284,24 @@ public class RobotDataList{
 		if(name.contains("Walls")){
 			walls--;
 		}
-
-		for(int i = 0; i < datalist.size(); i++){
-			if(name.equals(datalist.get(i).getName())){
-				datalist.remove(i);
+		for(int i = 0; i < 9; i++){
+			try{
+				if(name.equals(datalist.get(i).getName())){
+					datalist.remove(i);
+				}
+			}catch(IndexOutOfBoundsException e){
+				break;
 			}
 		}
-
+		if(name.contains("G05_Leader")){
+			isLeaderDead = true;
+		}
 		if(name.contains("G05_Sub")){
 			isDroidDead = true;
 		}
+	}
+
+	public boolean isLeaderDead(){
+		return isLeaderDead;
 	}
 }

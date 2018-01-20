@@ -5,7 +5,7 @@ import robocode.Droid;
 abstract public class G05_Sub extends G05 implements Droid{
 	@Override
 	public Mode getMode(){
-		if(data.walls() <= 1){
+		if((data.walls() <= 1||data.isLeaderDead())&&!data.isFinalize()){
 			return Mode.RAMFIRE;
 		}else{
 			return Mode.WALL;

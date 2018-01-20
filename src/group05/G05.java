@@ -2,9 +2,22 @@ package group05;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Serializable;
 
-import robocode.*;
+import robocode.HitByBulletEvent;
+import robocode.HitRobotEvent;
+import robocode.HitWallEvent;
+import robocode.MessageEvent;
+import robocode.RobocodeFileOutputStream;
+import robocode.RobotDeathEvent;
+import robocode.ScannedRobotEvent;
+import robocode.TeamRobot;
+import robocode.WinEvent;
 
 abstract public class G05 extends TeamRobot{
 	final int dist = 100; // 一度に移動する距離
@@ -37,8 +50,8 @@ abstract public class G05 extends TeamRobot{
 		}
 
 		if(getRoundNum() == 0){
-			try(PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(getDataFile(getName()+"result"))))){
-				writer.println("lose");
+			try(PrintStream w = new PrintStream(new RobocodeFileOutputStream(getDataFile(getName()+"result")))){
+				w.println("lose");
 			}catch(IOException e){}
 		}else{
 			boolean win=false;
@@ -48,15 +61,14 @@ abstract public class G05 extends TeamRobot{
 					win=true;
 				}
 			}catch(FileNotFoundException e){}catch(IOException e){}
-			for(String name:getTeammates()) {
-				try(BufferedReader reader = new BufferedReader(new FileReader(getDataFile(name+"result")))){
-					String line = reader.readLine();
-					if(line.equals("win")){
-						win=true;
-					}
-				}catch(FileNotFoundException e){}catch(IOException e){}
-			}
 			lost=!win;
+			if(win) {
+				try{
+					broadcastMessage(new ResultInfo(lost));
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+			}
 		}
 
 		double power = 0;
@@ -178,6 +190,10 @@ abstract public class G05 extends TeamRobot{
 			robo.setVelocity(sig.getVelocity());
 			robo.setrHeading(sig.getHeadingRadians());
 			robo.setTime(sig.getTime());
+		}else if(m instanceof ResultInfo) {
+			if(!((ResultInfo)m).hasLost()) {
+				lost=false;
+			}
 		}
 	}
 
@@ -340,8 +356,10 @@ abstract public class G05 extends TeamRobot{
 
 		// バグ移動や線形予測が通用しなかったら突撃
 		if(lost){
+			System.out.println("assult");
 			setTurnRightRadians(rDirection);
 		}else{
+			System.out.println("bug");
 			setTurnRight(rDirection);
 		}
 		return ret;
@@ -375,8 +393,8 @@ abstract public class G05 extends TeamRobot{
 	public void onWin(WinEvent win){
 		clearAllEvents();
 		if(getRoundNum() == 0){
-			try(PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(getDataFile(getName()+"result"))))){
-				writer.println("win");
+			try(PrintStream w = new PrintStream(new RobocodeFileOutputStream(getDataFile(getName()+"result")))){
+				w.println("win");
 			}catch(IOException e){
 
 			}
