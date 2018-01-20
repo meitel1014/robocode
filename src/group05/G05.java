@@ -2,22 +2,9 @@ package group05;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.Serializable;
+import java.io.*;
 
-import robocode.HitByBulletEvent;
-import robocode.HitRobotEvent;
-import robocode.HitWallEvent;
-import robocode.MessageEvent;
-import robocode.RobocodeFileOutputStream;
-import robocode.RobotDeathEvent;
-import robocode.ScannedRobotEvent;
-import robocode.TeamRobot;
-import robocode.WinEvent;
+import robocode.*;
 
 abstract public class G05 extends TeamRobot{
 	final int dist = 100; // 一度に移動する距離
@@ -32,7 +19,6 @@ abstract public class G05 extends TeamRobot{
 	enum Mode{
 		WALL, RAMFIRE, EVADE
 	};
-
 	abstract public Mode getMode();
 
 	public void run(){
@@ -48,28 +34,7 @@ abstract public class G05 extends TeamRobot{
 			setTurnRadarRight(400);
 			execute();
 		}
-
-		if(getRoundNum() == 0){
-			try(PrintStream w = new PrintStream(new RobocodeFileOutputStream(getDataFile(getName()+"result")))){
-				w.println("lose");
-			}catch(IOException e){}
-		}else{
-			boolean win=false;
-			try(BufferedReader reader = new BufferedReader(new FileReader(getDataFile(getName()+"result")))){
-				String line = reader.readLine();
-				if(line.equals("win")){
-					win=true;
-				}
-			}catch(FileNotFoundException e){}catch(IOException e){}
-			lost=!win;
-			if(win) {
-				try{
-					broadcastMessage(new ResultInfo(lost));
-				}catch(IOException e){
-					e.printStackTrace();
-				}
-			}
-		}
+		getResult();
 
 		double power = 0;
 		while(true){
@@ -93,7 +58,8 @@ abstract public class G05 extends TeamRobot{
 		}
 	}
 
-	public void recordMe(){
+	//自分の現在の情報をRobotDataListに記録し味方に送る
+	private void recordMe(){
 		RobotData me = data.get(this.getName());
 		me.setPosition(this.getX(), this.getY());
 		me.setEnergy(this.getEnergy());
@@ -131,8 +97,6 @@ abstract public class G05 extends TeamRobot{
 		double y = getY() + distance * Math.sin(mabsRoboRadians);
 		return new Point2D.Double(x, y);
 	}
-
-	public void onHitByBullet(HitByBulletEvent e){}
 
 	public void onHitRobot(HitRobotEvent e){
 		RobotData robo = data.get(e.getName());
@@ -178,7 +142,7 @@ abstract public class G05 extends TeamRobot{
 			RobotData robo = data.get(e.getName());
 			robo.setEnergy(e.getEnergy());
 			robo.setPosition(getHitRobotPosition(e.getBearingRadians()));
-			robo.setTime(getTime() - 1);// 1tick遅れて送られるため
+			robo.setTime(getTime());
 			if(!e.isMyFault()){
 				robo.setVelocity(0);
 			}
@@ -198,17 +162,16 @@ abstract public class G05 extends TeamRobot{
 	}
 
 	// 衝突したロボットへの相対角度から座標を返す
-	public Point2D.Double getHitRobotPosition(double rBearingRadians){
+	private Point2D.Double getHitRobotPosition(double rBearingRadians){
 		double mAngle = tomAngle(rBearingRadians + getHeadingRadians());
 		double x = getX() + Math.cos(mAngle);
 		double y = getY() + Math.sin(mAngle);
 		return new Point2D.Double(x, y);
 	}
 
-	protected void getDirection(){
+	private void getDirection(){
 		double forcex = 0, forcey = 0;// 各ロボットから受けるｘ、ｙ軸方向の力
 		Point2D.Double force;
-		// ウォールを倒した後に分岐する
 		if(getMode() == Mode.WALL || getMode() == Mode.EVADE){
 			/*
 			 * ロボットとの反重力
@@ -263,7 +226,7 @@ abstract public class G05 extends TeamRobot{
 		return new Point2D.Double(forcex, forcey);
 	}
 
-	public double getPower(double distance){
+	private double getPower(double distance){
 		if(distance <= 300){
 			return 3;
 		}else if(distance > 300 && distance <= 600){
@@ -273,35 +236,13 @@ abstract public class G05 extends TeamRobot{
 		}
 	}
 
-	// 威力powerで撃った弾速でroboに当たる座標を線形予測で計算する 壁を超えたら超えない範囲まで戻す
-	// roboのデータはrobo.getTime()の時点でのものであることに注意
-	public Point2D.Double getNextPosition(RobotData robo){
-		double vx = robo.getVelocity() * Math.cos(robo.getmHeading()); // 相手のx方向の速度
-		double vy = robo.getVelocity() * Math.sin(robo.getmHeading()); // 相手のy方向の速度
-		double vp = 20 - 3 * getPower(robo.getDistance(getX(), getY())); // 弾速
-		double time = robo.getDistance(getX(), getY()) / vp + (getTime() - robo.getTime());
-		double x = robo.getPosition().getX() + vx * time;
-		if(x < 0){
-			x = 0;
-		}else if(x > getBattleFieldWidth()){
-			x = getBattleFieldWidth();
-		}
-		double y = robo.getPosition().getY() + vy * time;
-		if(y < 0){
-			y = 0;
-		}else if(y > getBattleFieldHeight()){
-			y = getBattleFieldHeight();
-		}
-		return new Point2D.Double(x, y);
-	}
-
 	// 自分から見たenemyの数学角度を計算する
-	public double getmAngleBtwRobos(Point2D.Double enemy){
+	private double getmAngleBtwRobos(Point2D.Double enemy){
 		return Math.atan2(enemy.getY() - getY(), enemy.getX() - getX());
 	}
 
 	// 自分から見たenemyのRobocode角度を計算する
-	public double getrAngleBtwRobos(Point2D.Double enemy){
+	private double getrAngleBtwRobos(Point2D.Double enemy){
 		return torAngle(getmAngleBtwRobos(enemy));
 	}
 
@@ -356,10 +297,8 @@ abstract public class G05 extends TeamRobot{
 
 		// バグ移動や線形予測が通用しなかったら突撃
 		if(lost){
-			System.out.println("assult");
 			setTurnRightRadians(rDirection);
 		}else{
-			System.out.println("bug");
 			setTurnRight(rDirection);
 		}
 		return ret;
@@ -388,6 +327,30 @@ abstract public class G05 extends TeamRobot{
 			radian += 2 * Math.PI;
 		}
 		return radian;
+	}
+
+	private void getResult() {
+		if(getRoundNum() == 0){
+			try(PrintStream w = new PrintStream(new RobocodeFileOutputStream(getDataFile(getName()+"result")))){
+				w.println("lose");
+			}catch(IOException e){}
+		}else{
+			boolean win=false;
+			try(BufferedReader reader = new BufferedReader(new FileReader(getDataFile(getName()+"result")))){
+				String line = reader.readLine();
+				if(line.equals("win")){
+					win=true;
+				}
+			}catch(FileNotFoundException e){}catch(IOException e){}
+			lost=!win;
+			if(win) {
+				try{
+					broadcastMessage(new ResultInfo(lost));
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	public void onWin(WinEvent win){

@@ -3,7 +3,9 @@ package group05;
 import java.io.Serializable;
 
 public class ResultInfo implements Serializable{
-	boolean lost;
+	private static final long serialVersionUID = 32047325204L;
+
+	private boolean lost;
 
 	public ResultInfo(boolean lost) {
 		this.lost=lost;

@@ -52,6 +52,8 @@ public class RobotDataList{
 	/**
 	 * ターゲットにする敵ロボットの{@link RobotData}を返す．
 	 *
+	 * @param myName このメソッドを呼び出すロボットの名前
+	 *
 	 * @return ターゲットにする敵ロボットの{@link RobotData}
 	 */
 	public RobotData getTarget(String myName){
@@ -70,46 +72,43 @@ public class RobotDataList{
 		}
 	}
 
+
+	//Wallsの中からmyNameが狙うべきロボットを選ぶ．
 	private RobotData getWallTarget(String myName){
 		if(myName.contains("Leader")){
 			for(RobotData data: getWalls(myName)){
 				if(data.getName().contains("Walls")){
-					if(data.isLeader){
+					if(data.isLeader()){
 						return data;
 					}
-				}
-			}
-			// 元々のターゲットが見つからなかった時用
-			for(RobotData data: getWalls(myName)){
-				if(data.getName().contains("Walls")){
-					return data;
 				}
 			}
 		}else{
 			for(RobotData data: getWalls(myName)){
 				if(data.getName().contains("Walls")){
-					if(!data.isLeader){
+					if(!data.isLeader()){
 						return data;
 					}
 				}
 			}
-			// 元々のターゲットが見つからなかった時用
-			for(RobotData data: getWalls(myName)){
-				if(data.getName().contains("Walls")){
-					return data;
-				}
+		}
+		// 元々のターゲットが見つからなかった時用 Walls優先
+		for(RobotData data: getWalls(myName)){
+			if(data.getName().contains("Walls")){
+				return data;
 			}
 		}
-		return getEnemies().get(0);
+		return targetAll();
 	}
 
+	//敵グループの中からmyNameが狙うべきロボットを選ぶ．
 	private RobotData getGroupTarget(String myName){
 		if(myName.contains("Leader") && !isDroidDead){
 			return null;
 		}else{
 			if(hasDroid()){
 				for(RobotData data: getEnemyGroup()){
-					if(data.isLeader){
+					if(data.isLeader()){
 						return data;
 					}
 				}
@@ -122,13 +121,13 @@ public class RobotDataList{
 	private RobotData targetGroupSub(){
 		List<RobotData> enemy = getEnemyGroup();
 		if(enemy.isEmpty()){
-			return getEnemies().get(0);
+			return targetAll();
 		}
 		if(enemy.size() == 1){
 			return enemy.get(0);
 		}
 		for(int i = 0; i < enemy.size(); i++){
-			if(enemy.get(i).isLeader){
+			if(enemy.get(i).isLeader()){
 				enemy.remove(i);
 				break;
 			}
@@ -143,10 +142,18 @@ public class RobotDataList{
 		}
 	}
 
-	public RobotData targetAll(){
+	// すべての敵から適当に一体選んで返す
+	private RobotData targetAll(){
 		return getEnemies().get(0);
 	}
 
+	/**
+	 * 一緒にRamfireする味方の{@link RobotData}を返す．
+	 *
+	 * @param myName このメソッドを呼び出すロボットの名前
+	 *
+	 * @return 一緒にRamfireする味方の{@link RobotData}
+	 */
 	public RobotData getFriend(String myName){
 		if(isDroidDead){
 			if(myName.contains("Leader")){
@@ -175,12 +182,13 @@ public class RobotDataList{
 		return null;
 	}
 
+	/**
+	 * 敵グループを全滅させて敵がWallsだけになっているかを返す．
+	 *
+	 * @return 敵がWallsだけか
+	 */
 	public boolean isFinalize(){
 		return getEnemyGroup().isEmpty() && walls > 0;
-	}
-
-	public int size(){
-		return datalist.size();
 	}
 
 	/**
@@ -213,6 +221,11 @@ public class RobotDataList{
 		return enemies;
 	}
 
+	/**
+	 * 全てのWallsの{@link RobotData}を持つListを返す．
+	 *
+	 * @return 全てのWallsの{@link RobotData}を持つList
+	 */
 	public List<RobotData> getWalls(String myName){
 		List<RobotData> enemies = Collections.synchronizedList(new ArrayList<RobotData>());
 		for(RobotData data: getEnemies()){
@@ -250,21 +263,45 @@ public class RobotDataList{
 		return walls;
 	}
 
+	/**
+	 * 自分のLeaderが死んでいるかを返す．
+	 *
+	 * @return 自分のLeaderが死んでいるか
+	 */
+	public boolean isLeaderDead(){
+		return isLeaderDead;
+	}
+
+	/**
+	 * 自分の子機が一機でも死んでいるかを返す．
+	 *
+	 * @return 自分の子機が一機でも死んでいるか
+	 */
 	public boolean isDroidDead(){
 		return isDroidDead;
 	}
 
+	/**
+	 * 全てのロボットを登録できたかを返す．
+	 *
+	 * @return 全てのロボットを登録できたか
+	 */
 	public boolean isReady(){
 		return datalist.size() == 9;
 	}
 
+	/**
+	 * 敵グループがDroidを使用しているかを返す．
+	 *
+	 * @return 敵グループがDroidを使用しているか
+	 */
 	public boolean hasDroid(){
 		if(hasDroid != -1){
 			return hasDroid == 1? true: false;
 		}
 		if(isReady()){
 			for(RobotData g: getEnemyGroup()){
-				if(g.isDroid){
+				if(g.isDroid()){
 					hasDroid = 1;
 					return true;
 				}
@@ -299,9 +336,5 @@ public class RobotDataList{
 		if(name.contains("G05_Sub")){
 			isDroidDead = true;
 		}
-	}
-
-	public boolean isLeaderDead(){
-		return isLeaderDead;
 	}
 }

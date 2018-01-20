@@ -15,7 +15,7 @@ public class RobotData{
 	private double velocity = 0;
 	private double heading = 0;
 	private long time = 0;
-	public boolean isLeader, isDroid;
+	private boolean isLeader, isDroid;
 	private boolean isTeammate;
 
 	/**
@@ -110,7 +110,7 @@ public class RobotData{
 	}
 
 	/**
-	 * このロボットの残り体力を記録する，
+	 * このロボットの残り体力を記録する．
 	 *
 	 * @param energy
 	 */
@@ -172,7 +172,7 @@ public class RobotData{
 	/**
 	 * ロボットの向いているRobocode絶対角度を記録する．
 	 *
-	 * @param radians
+	 * @param rRadians
 	 */
 	public void setrHeading(double rRadians){
 		this.heading = G05.tomAngle(rRadians);
@@ -205,8 +205,24 @@ public class RobotData{
 		return isTeammate;
 	}
 
-	// TODO tを受け取りt秒後の座標を返す
-	// G05に移してもよい?
+	/**
+	 * このロボットがリーダーかどうかを返す．
+	 *
+	 * @return このロボットがリーダーならtrue，子機ならfalse
+	 */
+	public boolean isLeader() {
+		return isLeader;
+	}
+
+	/**
+	 * このロボットがDroidかどうかを返す．
+	 *
+	 * @return このロボットがDroidならtrue，通常子機ならfalse
+	 */
+	public boolean isDroid() {
+		return isDroid;
+	}
+
 	/**
 	 * 弾を発射する機体を基準とした相手の次の座標を返す．
 	 * http://www.wakayama-u.ac.jp/~fukuyasu/dis1-2006/robocode/
