@@ -15,6 +15,7 @@ public class RobotDataList{
 	private int walls = 3;
 	private boolean isLeaderDead = false;
 	private boolean isDroidDead = false;
+	private boolean isReady=false;
 	private int hasDroid = -1;
 
 	/**
@@ -287,7 +288,14 @@ public class RobotDataList{
 	 * @return 全てのロボットを登録できたか
 	 */
 	public boolean isReady(){
-		return datalist.size() == 9;
+		if(isReady){
+			return true;
+		}
+		if(datalist.size() == 9) {
+			isReady=true;
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -297,15 +305,18 @@ public class RobotDataList{
 	 */
 	public boolean hasDroid(){
 		if(hasDroid != -1){
-			return hasDroid == 1? true: false;
+			return hasDroid == 1;
 		}
 		if(isReady()){
+			System.out.println("judgedroid");
 			for(RobotData g: getEnemyGroup()){
 				if(g.isDroid()){
+					System.out.println("droid");
 					hasDroid = 1;
 					return true;
 				}
 			}
+			System.out.println("notdroid");
 			hasDroid = 0;
 			return false;
 		}

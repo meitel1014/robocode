@@ -2,9 +2,21 @@ package group05;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Serializable;
 
-import robocode.*;
+import robocode.HitRobotEvent;
+import robocode.HitWallEvent;
+import robocode.MessageEvent;
+import robocode.RobocodeFileOutputStream;
+import robocode.RobotDeathEvent;
+import robocode.ScannedRobotEvent;
+import robocode.TeamRobot;
+import robocode.WinEvent;
 
 abstract public class G05 extends TeamRobot{
 	final int dist = 100; // 一度に移動する距離
@@ -110,7 +122,7 @@ abstract public class G05 extends TeamRobot{
 		}catch(IOException e1){
 			e1.printStackTrace();
 		}
-		if(getMode() != Mode.RAMFIRE){
+		if(getMode() != Mode.RAMFIRE||!lost){
 			escape(e.getBearingRadians());
 		}
 	}
@@ -125,9 +137,9 @@ abstract public class G05 extends TeamRobot{
 	private void escape(double rAngle){
 		System.out.println("escape");
 		if(Math.abs(rAngle) <= Math.PI / 2){// 衝突先が前方にある
-			ahead(-dist / 2);
+			ahead(-dist);
 		}else{// 衝突先が後方にある
-			ahead(dist / 2);
+			ahead(dist);
 		}
 	}
 

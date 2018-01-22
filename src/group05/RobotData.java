@@ -29,7 +29,7 @@ public class RobotData{
 		this.isTeammate = isTeammate;
 		position = new Point2D.Double(500, 400);
 		// グループ機体の場合
-		if(!isTeammate){
+		if(name.contains("G")){
 			if(name.contains("Leader")){
 				isLeader = true;
 			}else if(name.contains("Sub")){
